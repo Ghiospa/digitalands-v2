@@ -1,0 +1,366 @@
+@import url('https://fonts.googleapis.com/css2?family=Unbounded:wght@300;400;500;600;700;800&family=DM+Mono:wght@300;400;500&family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Base resets ── */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+    background-color: #0A0A0A;
+    color: #F0F0F0;
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+    line-height: 1.6;
+    overflow-x: hidden;
+    font-feature-settings: 'ss01', 'ss02';
+    letter-spacing: -0.01em;
+}
+
+/* ── CSS custom variables ── */
+:root {
+    --bg: #0A0A0A;
+    --surface: #111111;
+    --surface-2: #1A1A1A;
+    --border: #222222;
+    --border-light: #2E2E2E;
+    --accent: #D4A853;
+    --accent-dim: rgba(212, 168, 83, 0.08);
+    --text-primary: #FFFFFF;
+    --text-muted: #B0B0B0;
+    --text-subtle: #666666;
+}
+
+/* ── Scroll-reveal animation ── */
+.reveal {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* ── Stagger helpers ── */
+.stagger-1 {
+    transition-delay: 0ms;
+}
+
+.stagger-2 {
+    transition-delay: 120ms;
+}
+
+.stagger-3 {
+    transition-delay: 240ms;
+}
+
+.stagger-4 {
+    transition-delay: 360ms;
+}
+
+.stagger-5 {
+    transition-delay: 480ms;
+}
+
+/* ── Hero floating ambient tags ── */
+@keyframes heroFloat {
+    0% {
+        transform: translateY(0px);
+        opacity: 0.55;
+    }
+
+    50% {
+        transform: translateY(-10px);
+        opacity: 0.75;
+    }
+
+    100% {
+        transform: translateY(0px);
+        opacity: 0.55;
+    }
+}
+
+@keyframes heroFloatSlow {
+    0% {
+        transform: translateY(0px) rotate(0deg);
+        opacity: 0.4;
+    }
+
+    50% {
+        transform: translateY(-8px) rotate(1deg);
+        opacity: 0.55;
+    }
+
+    100% {
+        transform: translateY(0px) rotate(0deg);
+        opacity: 0.4;
+    }
+}
+
+.hero-float-tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.05em;
+    /* color / background / border come from inline per-tag styles */
+    color: inherit;
+    background: inherit;
+    border: 1px solid;
+    border-color: currentColor;
+    border-radius: 5px;
+    padding: 5px 11px;
+    white-space: nowrap;
+    animation: heroFloat var(--dur, 8s) ease-in-out infinite;
+    animation-delay: var(--delay, 0s);
+    opacity: 0.9;
+}
+
+.hero-float-svg {
+    animation: heroFloatSlow var(--dur, 9s) ease-in-out infinite;
+    animation-delay: var(--delay, 0s);
+}
+
+/* ── Button shimmer ── */
+@keyframes shimmer {
+    0% {
+        background-position: -200% center;
+    }
+
+    100% {
+        background-position: 200% center;
+    }
+}
+
+.btn-gold {
+    position: relative;
+    background: var(--accent);
+    color: #0A0A0A;
+    font-weight: 600;
+    font-size: 0.9rem;
+    letter-spacing: 0.01em;
+    padding: 12px 24px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    overflow: hidden;
+}
+
+.btn-gold::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(110deg, transparent 30%, rgba(255, 255, 255, 0.18) 50%, transparent 70%);
+    background-size: 200%;
+    background-position: -200% center;
+    transition: background-position 0s;
+}
+
+.btn-gold:hover::after {
+    animation: shimmer 0.8s ease forwards;
+}
+
+.btn-gold:active {
+    transform: scale(0.97);
+}
+
+.btn-ghost {
+    background: transparent;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    font-weight: 500;
+    padding: 11px 22px;
+    border-radius: 6px;
+    border: 1px solid var(--border-light);
+    cursor: pointer;
+    transition: border-color 0.2s, color 0.2s, transform 0.15s;
+    letter-spacing: 0.01em;
+}
+
+.btn-ghost:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+.btn-ghost:active {
+    transform: scale(0.97);
+}
+
+/* ── Section chip label ── */
+.section-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--accent);
+    padding: 5px 12px;
+    border: 1px solid rgba(212, 168, 83, 0.3);
+    border-radius: 4px;
+    margin-bottom: 20px;
+}
+
+/* ── Grid background ── */
+.grid-bg {
+    background-image:
+        linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+    background-size: 40px 40px;
+}
+
+/* ── Card hover glow ── */
+.card-hover {
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    border: 1px solid var(--border-light);
+    border-radius: 8px;
+}
+
+.card-hover:hover {
+    transform: translateY(-3px);
+    border-color: rgba(212, 168, 83, 0.35);
+    box-shadow: 0 0 0 1px rgba(212, 168, 83, 0.08) inset,
+        0 12px 40px rgba(0, 0, 0, 0.4);
+}
+
+/* ── Gold checkmark ── */
+.check-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    font-size: 0.9rem;
+    color: var(--text-primary);
+    line-height: 1.5;
+}
+
+.check-item .check-icon {
+    color: var(--accent);
+    font-size: 0.85rem;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+/* ── Testimonial card ── */
+.testimonial-card {
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+    font-style: italic;
+    font-size: 17px;
+    color: var(--text-primary);
+    line-height: 1.65;
+    margin-bottom: 20px;
+}
+
+.testimonial-card blockquote {
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+    font-style: italic;
+    font-size: 17px;
+    color: var(--text-primary);
+    line-height: 1.65;
+    margin-bottom: 20px;
+}
+
+/* ── Prop card image ── */
+.prop-img-bg {
+    position: relative;
+    height: 190px;
+    overflow: hidden;
+    border-radius: 6px 6px 0 0;
+}
+
+.prop-img-bg .arch-shape {
+    position: absolute;
+    bottom: -15px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90px;
+    height: 130px;
+    border-radius: 45px 45px 0 0;
+    background: rgba(0, 0, 0, 0.25);
+}
+
+/* ── Waitlist form ── */
+.waitlist-input {
+    background: #111;
+    border: 1px solid var(--border-light);
+    border-radius: 6px;
+    padding: 14px 20px;
+    color: var(--text-primary);
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.95rem;
+    width: 100%;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.waitlist-input::placeholder {
+    color: var(--text-muted);
+}
+
+.waitlist-input:focus {
+    border-color: var(--accent);
+}
+
+/* ── Smooth nav ── */
+.navbar-scroll {
+    background: rgba(10, 10, 10, 0.92) !important;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border);
+}
+
+/* ── Avatar stack ── */
+.avatar-ring {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: 2px solid #0A0A0A;
+    margin-left: -8px;
+    display: inline-block;
+}
+
+.avatar-ring:first-child {
+    margin-left: 0;
+}
+
+/* ── Count-up animation ── */
+.count-up {
+    transition: all 0.4s ease;
+}
+
+/* ── Mobile responsive ── */
+@media (max-width: 768px) {
+    .hero-headline {
+        font-size: 44px !important;
+    }
+}
+
+/* ── Founding stats card ── */
+.stat-metric {
+    font-family: 'Unbounded', system-ui, sans-serif;
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--accent);
+    line-height: 1;
+    margin-bottom: 4px;
+}
+
+.stat-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+}
