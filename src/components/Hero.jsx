@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import sicilyImage from '../assets/sicily-outline.png';
 
 const AVATARS = [
     { bg: 'linear-gradient(135deg,#8A6B3A,#D4A853)' },
@@ -73,47 +74,28 @@ function DigitalSun({ size = 140 }) {
     );
 }
 
-// ── SVG: Stylized Sicily Outline ──
+// ── SVG: Stylized Sicily Outline (Now using user-provided image) ──
 function SicilyOutline({ size = 300 }) {
-    // Stylized, simplified path for Sicily
-    const d = "M110,60 L240,40 L280,180 L180,240 L60,220 L30,120 Z"; // Base triangle-ish shape
-    // A more organic stylized Sicily path
-    const organicPath = "M 50 150 Q 80 50 200 60 Q 300 80 280 180 Q 240 280 150 260 Q 50 240 40 180 Z";
-
     return (
-        <svg viewBox="0 0 320 320" width={size} height={size} style={{ opacity: 0.8, filter: 'blur(0.5px)' }}>
-            <defs>
-                <linearGradient id="sicilyGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="var(--accent)" stopOpacity="0.15" />
-                    <stop offset="100%" stopColor="var(--accent)" stopOpacity="0.05" />
-                </linearGradient>
-            </defs>
-            {/* Main organic shape */}
-            <path
-                d={organicPath}
-                fill="url(#sicilyGradient)"
-                stroke="var(--accent)"
-                strokeWidth="1.5"
-                strokeDasharray="5 5"
-                strokeOpacity="0.4"
-                style={{ animation: 'float-slow 20s infinite ease-in-out' }}
+        <div style={{
+            width: size,
+            height: size,
+            position: 'relative',
+            opacity: 0.6,
+            filter: 'drop-shadow(0 0 20px rgba(212,168,83,0.15)) brightness(1.2) contrast(1.1)',
+            animation: 'float-slow 20s infinite ease-in-out'
+        }}>
+            <img
+                src={sicilyImage}
+                alt="Sicily Outline"
+                style={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'contain',
+                    filter: 'sepia(1) saturate(5) hue-rotate(-10deg) brightness(0.9)' // Give it a gold-ish tint
+                }}
             />
-            {/* Subtle inner detail lines */}
-            <path
-                d="M 100 120 Q 150 100 200 130"
-                stroke="var(--accent)"
-                strokeWidth="0.5"
-                strokeOpacity="0.2"
-                fill="none"
-            />
-            <path
-                d="M 120 200 Q 180 190 220 210"
-                stroke="var(--accent)"
-                strokeWidth="0.5"
-                strokeOpacity="0.2"
-                fill="none"
-            />
-        </svg>
+        </div>
     );
 }
 
