@@ -73,6 +73,50 @@ function DigitalSun({ size = 140 }) {
     );
 }
 
+// ── SVG: Stylized Sicily Outline ──
+function SicilyOutline({ size = 300 }) {
+    // Stylized, simplified path for Sicily
+    const d = "M110,60 L240,40 L280,180 L180,240 L60,220 L30,120 Z"; // Base triangle-ish shape
+    // A more organic stylized Sicily path
+    const organicPath = "M 50 150 Q 80 50 200 60 Q 300 80 280 180 Q 240 280 150 260 Q 50 240 40 180 Z";
+
+    return (
+        <svg viewBox="0 0 320 320" width={size} height={size} style={{ opacity: 0.8, filter: 'blur(0.5px)' }}>
+            <defs>
+                <linearGradient id="sicilyGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="var(--accent)" stopOpacity="0.15" />
+                    <stop offset="100%" stopColor="var(--accent)" stopOpacity="0.05" />
+                </linearGradient>
+            </defs>
+            {/* Main organic shape */}
+            <path
+                d={organicPath}
+                fill="url(#sicilyGradient)"
+                stroke="var(--accent)"
+                strokeWidth="1.5"
+                strokeDasharray="5 5"
+                strokeOpacity="0.4"
+                style={{ animation: 'float-slow 20s infinite ease-in-out' }}
+            />
+            {/* Subtle inner detail lines */}
+            <path
+                d="M 100 120 Q 150 100 200 130"
+                stroke="var(--accent)"
+                strokeWidth="0.5"
+                strokeOpacity="0.2"
+                fill="none"
+            />
+            <path
+                d="M 120 200 Q 180 190 220 210"
+                stroke="var(--accent)"
+                strokeWidth="0.5"
+                strokeOpacity="0.2"
+                fill="none"
+            />
+        </svg>
+    );
+}
+
 // ── SVG: Lemon + WiFi fusion ──
 function LemonWifi({ size = 80 }) {
     const cx = size / 2, cy = size * 0.52;
@@ -291,6 +335,10 @@ export default function Hero() {
 
             {/* ── Nature + Digital SVG decorations ── */}
             <div className="absolute inset-0 pointer-events-none hidden lg:block">
+                {/* ── Sicily Outline Background ── */}
+                <div className="absolute top-[15%] left-[5%] opacity-30 select-none pointer-events-none" style={{ transform: 'rotate(-5deg)' }}>
+                    <SicilyOutline size={500} />
+                </div>
 
                 {/* Digital Sun — top right */}
                 <div className="absolute hero-float-svg" style={{ top: '6%', right: '8%', animationDelay: '0s', animationDuration: '15s', opacity: 0.9 }}>
