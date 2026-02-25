@@ -1,6 +1,8 @@
 /* Digital Nomad ID Card */
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { QRCodeSVG } from 'qrcode.react';
+import { toPng } from 'html-to-image';
 
 function SicilyCardBg() {
     return (
@@ -30,6 +32,7 @@ const ROLE_COLORS = {
 export default function DigitalCard() {
     const { user } = useAuth();
     const cardRef = useRef(null);
+    const [downloading, setDownloading] = useState(false);
 
     if (!user) return null;
 
@@ -37,6 +40,29 @@ export default function DigitalCard() {
     const memberSince = new Date(user.createdAt || Date.now()).toLocaleDateString('it-IT', { year: 'numeric', month: 'long' });
     const roleLabel = ROLE_LABELS[user.role] || 'Nomade Digitale';
     const roleColor = ROLE_COLORS[user.role] || '#D4A853';
+
+    // Download card as image
+    const downloadCard = async () => {
+        if (!cardRef.current) return;
+        setDownloading(true);
+        try {
+            const dataUrl = await toPng(cardRef.current, {
+                cacheBust: true,
+                style: {
+                    transform: 'none', // Reset tilt for snapshot
+                    scale: '1',
+                }
+            });
+            const link = document.createElement('a');
+            link.download = `digitalands-nomad-card-${user.name.replace(/\s+/g, '-').toLowerCase()}.png`;
+            link.href = dataUrl;
+            link.click();
+        } catch (err) {
+            console.error('Download failed', err);
+        } finally {
+            setDownloading(false);
+        }
+    };
 
     // Tilt on mouse move
     function handleMouseMove(e) {
@@ -56,19 +82,18 @@ export default function DigitalCard() {
     }
 
     return (
-        <div style={{ marginBottom: '32px' }}>
+        <div style={{ marginBottom: '32px', maxWidth: '340px' }}>
             <div style={{ fontSize: '11px', fontFamily: 'monospace', letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '14px' }}>
                 🪪 Tessera Digitale
             </div>
 
-            {/* Card */}
+            {/* Card Container */}
             <div
                 ref={cardRef}
                 onMouseMove={handleMouseMove}
                 onMouseLeave={handleMouseLeave}
                 style={{
                     position: 'relative',
-                    maxWidth: '340px',
                     borderRadius: '16px',
                     overflow: 'hidden',
                     padding: '24px 26px',
@@ -78,6 +103,7 @@ export default function DigitalCard() {
                     cursor: 'default',
                     transition: 'transform 0.15s ease, box-shadow 0.15s ease',
                     userSelect: 'none',
+                    zIndex: 1,
                 }}
             >
                 {/* Background gleam */}
@@ -113,24 +139,38 @@ export default function DigitalCard() {
                     </div>
                 </div>
 
-                {/* Avatar & name */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '20px', position: 'relative' }}>
-                    <div style={{
-                        width: '52px', height: '52px', borderRadius: '12px',
-                        background: `linear-gradient(135deg, ${roleColor}40, ${roleColor}80)`,
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        fontFamily: "'Unbounded', sans-serif", fontSize: '1.4rem', fontWeight: 700, color: roleColor,
-                        border: `1px solid ${roleColor}50`, flexShrink: 0,
-                    }}>
-                        {user.name.charAt(0).toUpperCase()}
+                {/* Mid section: Avatar & QR Code */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px', position: 'relative' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                        <div style={{
+                            width: '52px', height: '52px', borderRadius: '12px',
+                            background: `linear-gradient(135deg, ${roleColor}40, ${roleColor}80)`,
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            fontFamily: "'Unbounded', sans-serif", fontSize: '1.4rem', fontWeight: 700, color: roleColor,
+                            border: `1px solid ${roleColor}50`, flexShrink: 0,
+                        }}>
+                            {user.name.charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                            <div style={{ fontFamily: "'Unbounded', sans-serif", fontWeight: 700, fontSize: '0.95rem', color: '#F0F0F0', lineHeight: 1.2, marginBottom: '4px' }}>
+                                {user.name}
+                            </div>
+                            <div style={{ fontSize: '9px', fontFamily: 'monospace', letterSpacing: '0.1em', textTransform: 'uppercase', color: roleColor }}>
+                                {roleLabel}
+                            </div>
+                        </div>
                     </div>
-                    <div>
-                        <div style={{ fontFamily: "'Unbounded', sans-serif", fontWeight: 700, fontSize: '0.95rem', color: '#F0F0F0', lineHeight: 1.2, marginBottom: '4px' }}>
-                            {user.name}
-                        </div>
-                        <div style={{ fontSize: '9px', fontFamily: 'monospace', letterSpacing: '0.1em', textTransform: 'uppercase', color: roleColor }}>
-                            {roleLabel}
-                        </div>
+                    {/* QR Code */}
+                    <div style={{
+                        padding: '6px',
+                        background: '#FFF',
+                        borderRadius: '6px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        boxShadow: '0 4px 10px rgba(0,0,0,0.3)'
+                    }}>
+                        <QRCodeSVG value={`https://digitalands-v2.vercel.app/member/${user.id}`} size={42} />
                     </div>
                 </div>
 
@@ -168,9 +208,44 @@ export default function DigitalCard() {
                 </div>
             </div>
 
+            {/* Actions */}
+            <div style={{ marginTop: '20px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <button
+                    onClick={downloadCard}
+                    disabled={downloading}
+                    className="btn-ghost"
+                    style={{ width: '100%', padding: '10px', fontSize: '0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+                >
+                    {downloading ? 'Generazione...' : '📥 Scarica come immagine'}
+                </button>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                    <button
+                        onClick={() => alert('Apple Wallet: In una versione di produzione, questo genererebbe un file .pkpass firmato da Apple.')}
+                        style={{
+                            background: '#000', color: '#FFF', border: '1px solid #333', borderRadius: '8px',
+                            padding: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
+                            fontSize: '11px', fontWeight: 600, cursor: 'pointer'
+                        }}
+                    >
+                         Wallet
+                    </button>
+                    <button
+                        onClick={() => alert('Google Wallet: In una versione di produzione, questo utilizzerebbe le Google Wallet API per aggiungere la tessera.')}
+                        style={{
+                            background: '#000', color: '#FFF', border: '1px solid #333', borderRadius: '8px',
+                            padding: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
+                            fontSize: '11px', fontWeight: 600, cursor: 'pointer'
+                        }}
+                    >
+                        <span style={{ fontSize: '1.2rem' }}>💳</span> Google
+                    </button>
+                </div>
+            </div>
+
             {/* Helper text */}
-            <p style={{ marginTop: '10px', fontSize: '11px', fontFamily: 'monospace', color: 'var(--text-muted)' }}>
-                La tua tessera virtuale da nomade digitale in Sicilia.
+            <p style={{ marginTop: '10px', fontSize: '11px', fontFamily: 'monospace', color: 'var(--text-muted)', lineHeight: 1.4 }}>
+                Usa il QR code per accedere ai vantaggi della community in tutta la Sicilia.
             </p>
         </div>
     );

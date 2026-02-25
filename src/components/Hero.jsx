@@ -316,10 +316,10 @@ export default function Hero() {
             </div>
 
             {/* ── Nature + Digital SVG decorations ── */}
-            <div className="absolute inset-0 pointer-events-none hidden lg:block">
+            <div className="absolute inset-0 pointer-events-none flex items-center justify-center overflow-hidden">
                 {/* ── Sicily Outline Background ── */}
-                <div className="absolute top-[15%] left-[5%] opacity-30 select-none pointer-events-none" style={{ transform: 'rotate(-5deg)' }}>
-                    <SicilyOutline size={500} />
+                <div className="opacity-20 select-none pointer-events-none" style={{ transform: 'rotate(-5deg)' }}>
+                    <SicilyOutline size={750} />
                 </div>
 
                 {/* Digital Sun — top right */}
