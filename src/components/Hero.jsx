@@ -245,7 +245,7 @@ export default function Hero() {
             <div className="absolute inset-0 pointer-events-none flex items-center justify-center overflow-hidden">
                 {/* ── Sicily Outline Background ── */}
                 <div className="opacity-20 select-none pointer-events-none" style={{ transform: 'rotate(-5deg)' }}>
-                    <SicilyOutline size={750} />
+                    <SicilyOutline size="clamp(350px, 90vw, 750px)" />
                 </div>
 
                 {/* Digital Sun — top right */}
