@@ -61,32 +61,71 @@ function LandingPage() {
     );
 }
 
+import React from 'react';
+
+// Basic Error Boundary to catch runtime crashes
+class ErrorBoundary extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = { hasError: false, error: null };
+    }
+    static getDerivedStateFromError(error) {
+        return { hasError: true, error };
+    }
+    render() {
+        if (this.state.hasError) {
+            return (
+                <div style={{
+                    padding: '40px',
+                    textAlign: 'center',
+                    background: '#0A0A0A',
+                    color: '#D4A853',
+                    minHeight: '100vh',
+                    fontFamily: 'monospace'
+                }}>
+                    <h1>Something went wrong.</h1>
+                    <p>{this.state.error?.toString()}</p>
+                    <button
+                        onClick={() => window.location.reload()}
+                        style={{ background: '#D4A853', color: '#0A0A0A', border: 'none', padding: '10px 20px', cursor: 'pointer' }}
+                    >
+                        Retry
+                    </button>
+                </div>
+            );
+        }
+        return this.props.children;
+    }
+}
+
 export default function App() {
     return (
-        <BrowserRouter>
-            <I18nProvider>
-                <AuthProvider>
-                    <BookingProvider>
-                        <div style={{ background: 'var(--bg)', minHeight: '100vh' }}>
-                            <Navbar />
-                            <Routes>
-                                <Route path="/" element={<LandingPage />} />
-                                <Route path="/auth" element={<AuthPage />} />
-                                <Route path="/property/:id" element={<PropertyDetail />} />
-                                <Route path="/dashboard" element={<Dashboard />} />
-                                <Route path="/activities" element={<ActivitiesPage />} />
-                                <Route path="/mappa" element={<MapPage />} />
-                                <Route path="/manager/activities" element={<ActivityManagerDashboard />} />
-                                <Route path="/manager/properties" element={<PropertyManagerDashboard />} />
-                                <Route path="/strutture" element={<PropertiesPage />} />
-                                <Route path="/properties" element={<PropertiesPage />} />
-                                {/* Fallback */}
-                                <Route path="*" element={<LandingPage />} />
-                            </Routes>
-                        </div>
-                    </BookingProvider>
-                </AuthProvider>
-            </I18nProvider>
-        </BrowserRouter>
+        <ErrorBoundary>
+            <BrowserRouter>
+                <I18nProvider>
+                    <AuthProvider>
+                        <BookingProvider>
+                            <div style={{ background: 'var(--bg)', minHeight: '100vh' }}>
+                                <Navbar />
+                                <Routes>
+                                    <Route path="/" element={<LandingPage />} />
+                                    <Route path="/auth" element={<AuthPage />} />
+                                    <Route path="/property/:id" element={<PropertyDetail />} />
+                                    <Route path="/dashboard" element={<Dashboard />} />
+                                    <Route path="/activities" element={<ActivitiesPage />} />
+                                    <Route path="/mappa" element={<MapPage />} />
+                                    <Route path="/manager/activities" element={<ActivityManagerDashboard />} />
+                                    <Route path="/manager/properties" element={<PropertyManagerDashboard />} />
+                                    <Route path="/strutture" element={<PropertiesPage />} />
+                                    <Route path="/properties" element={<PropertiesPage />} />
+                                    {/* Fallback */}
+                                    <Route path="*" element={<LandingPage />} />
+                                </Routes>
+                            </div>
+                        </BookingProvider>
+                    </AuthProvider>
+                </I18nProvider>
+            </BrowserRouter>
+        </ErrorBoundary>
     );
 }
