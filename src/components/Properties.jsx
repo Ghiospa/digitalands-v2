@@ -1,4 +1,6 @@
 import { SEED_PROPERTIES } from '../data/seedProperties';
+import { Link } from 'react-router-dom';
+import PropCard from './PropCard';
 
 const PROPERTIES = SEED_PROPERTIES.slice(0, 3);
 

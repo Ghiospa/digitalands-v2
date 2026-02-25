@@ -1,4 +1,7 @@
+import { useState, useMemo } from 'react';
 import { SEED_PROPERTIES, COMUNI } from '../data/seedProperties';
+import { useI18n } from '../context/I18nContext';
+import PropCard from '../components/PropCard';
 
 export default function PropertiesPage() {
     const { t } = useI18n();
