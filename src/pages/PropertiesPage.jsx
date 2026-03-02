@@ -1,4 +1,5 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
+import { supabase } from '../lib/supabase';
 import { SEED_PROPERTIES, COMUNI } from '../data/seedProperties';
 import { useI18n } from '../context/I18nContext';
 import PropCard from '../components/PropCard';
@@ -18,13 +19,33 @@ export default function PropertiesPage() {
         { label: '🍳 Cucina', value: 'cucina' },
     ];
 
-    const allProperties = useMemo(() => {
-        let custom = [];
-        try {
-            custom = JSON.parse(localStorage.getItem('digitalands_custom_properties') || '[]').filter(p => p.published);
-        } catch (e) { console.error(e); }
-        return [...SEED_PROPERTIES, ...custom];
+    const [dbProperties, setDbProperties] = useState([]);
+
+    useEffect(() => {
+        async function fetchDbProperties() {
+            const { data, error } = await supabase
+                .from('properties')
+                .select('*')
+                .eq('published', true);
+
+            if (!error && data) {
+                // Map DB fields to SEED structure
+                const mapped = data.map(p => ({
+                    ...p,
+                    image: p.image_url,
+                    pricePerNight: p.price_per_night,
+                    amenities: p.specs || [],
+                    type: 'custom'
+                }));
+                setDbProperties(mapped);
+            }
+        }
+        fetchDbProperties();
     }, []);
+
+    const allProperties = useMemo(() => {
+        return [...SEED_PROPERTIES, ...dbProperties];
+    }, [dbProperties]);
 
     const filtered = allProperties.filter(p => {
         const matchesComune = filterComune === 'Tutti' || p.comune === filterComune;

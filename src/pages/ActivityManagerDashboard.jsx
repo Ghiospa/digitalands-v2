@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useI18n } from '../context/I18nContext';
@@ -24,30 +24,28 @@ const CAT_IMAGES = {
 
 const DEFAULT_SLOTS = ['09:00', '11:00', '14:00', '16:00'];
 
-function getMyActivities(userId) {
-    try {
-        const all = JSON.parse(localStorage.getItem('digitalands_custom_activities') || '[]');
-        return all.filter(a => a.ownerId === userId);
-    } catch { return []; }
+import { supabase } from '../lib/supabase';
+
+async function getMyActivities(userId) {
+    const { data, error } = await supabase
+        .from('activities')
+        .select('*')
+        .eq('owner_id', userId)
+        .order('created_at', { ascending: false });
+
+    if (error) {
+        console.error('Error fetching activities:', error);
+        return [];
+    }
+    return data;
 }
 
-function getAllActivityBookings(activityIds) {
-    try {
-        const all = JSON.parse(localStorage.getItem('digitalands_activity_bookings') || '[]');
-        return all.filter(b => activityIds.includes(b.activityId));
-    } catch { return []; }
-}
-
-function saveActivity(activity) {
-    const all = JSON.parse(localStorage.getItem('digitalands_custom_activities') || '[]');
-    const idx = all.findIndex(a => a.id === activity.id);
-    if (idx !== -1) { all[idx] = activity; } else { all.unshift(activity); }
-    localStorage.setItem('digitalands_custom_activities', JSON.stringify(all));
-}
-
-function deleteActivity(id) {
-    const all = JSON.parse(localStorage.getItem('digitalands_custom_activities') || '[]');
-    localStorage.setItem('digitalands_custom_activities', JSON.stringify(all.filter(a => a.id !== id)));
+async function deleteActivity(id) {
+    const { error } = await supabase
+        .from('activities')
+        .delete()
+        .eq('id', id);
+    if (error) console.error('Error deleting activity:', error);
 }
 
 /* ─── New/Edit Activity Form ─── */
@@ -76,21 +74,38 @@ function ActivityForm({ user, onSaved, editItem }) {
         setForm(f => ({ ...f, slots: f.slots.filter(sl => sl !== s) }));
     }
 
-    function handleSubmit(e) {
+    async function handleSubmit(e) {
         e.preventDefault();
-        const activity = {
-            ...form,
-            id: editItem?.id || `custom-${Date.now()}`,
-            ownerId: user.id,
-            ownerName: user.name,
+        const activityData = {
+            owner_id: user.id,
+            title: form.name,
+            category: form.category,
             price: Number(form.price),
-            image: form.image || CAT_IMAGES[form.category] || CAT_IMAGES['Altro'],
-            emoji: { 'Surf': '🏄', 'Kite Surf': '🪁', 'Yoga': '🧘', 'Escursioni': '🥾', 'Snorkeling': '🤿', 'Food & Wine': '🍷', 'Altro': '✨' }[form.category] || '✨',
-            coordinates: null,
+            description: form.description,
+            image_url: form.image || CAT_IMAGES[form.category] || CAT_IMAGES['Altro'],
+            published: form.published,
+            // duration, location, slots could be added as JSON or separate columns if needed
         };
-        saveActivity(activity);
-        setSaved(true);
-        setTimeout(() => { onSaved(); setSaved(false); }, 800);
+
+        let result;
+        if (editItem?.id) {
+            result = await supabase
+                .from('activities')
+                .update(activityData)
+                .eq('id', editItem.id);
+        } else {
+            result = await supabase
+                .from('activities')
+                .insert([activityData]);
+        }
+
+        if (result.error) {
+            console.error('Error saving activity:', result.error);
+            alert('Errore nel salvataggio dell\'attività.');
+        } else {
+            setSaved(true);
+            setTimeout(() => { onSaved(); setSaved(false); }, 800);
+        }
     }
 
     const inputStyle = { width: '100%', padding: '10px 14px', background: 'var(--surface-2)', border: '1px solid var(--border-light)', borderRadius: '6px', color: 'var(--text-primary)', fontSize: '0.9rem', fontFamily: 'inherit', outline: 'none' };
@@ -182,11 +197,11 @@ function ManagerActivityCard({ activity, onDelete, onEdit }) {
     const { t } = useI18n();
     return (
         <div style={{ background: 'var(--surface)', border: '1px solid var(--border-light)', borderRadius: '10px', padding: '18px', display: 'flex', alignItems: 'center', gap: '16px' }}>
-            <img src={activity.image} alt={activity.name} style={{ width: '60px', height: '60px', borderRadius: '8px', objectFit: 'cover', flexShrink: 0 }} />
+            <img src={activity.image_url || activity.image} alt={activity.title || activity.name} style={{ width: '60px', height: '60px', borderRadius: '8px', objectFit: 'cover', flexShrink: 0 }} />
             <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontWeight: 600, color: 'var(--text-primary)', marginBottom: '2px' }}>{activity.name}</div>
+                <div style={{ fontWeight: 600, color: 'var(--text-primary)', marginBottom: '2px' }}>{activity.title || activity.name}</div>
                 <div style={{ fontSize: '12px', fontFamily: 'monospace', color: 'var(--text-muted)' }}>
-                    {activity.location} · €{activity.price} · {activity.duration}
+                    {activity.category} · €{activity.price}
                 </div>
                 <div style={{ display: 'flex', gap: '6px', marginTop: '6px', flexWrap: 'wrap' }}>
                     {(activity.slots || []).map(s => (
@@ -314,27 +329,39 @@ export default function ActivityManagerDashboard() {
     const { t } = useI18n();
     const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState('list');
-    const [editItem, setEditItem] = useState(null);
-    const [activities, setActivities] = useState(() => user ? getMyActivities(user.id) : []);
+    const [activities, setActivities] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        if (user) refreshList();
+    }, [user]);
 
     if (!user) return <Navigate to="/auth?redirect=/manager/activities" replace />;
     if (user.role !== 'activity_manager') return <Navigate to="/dashboard" replace />;
 
-    const bookings = getAllActivityBookings(activities.map(a => a.id));
+    const bookings = []; // LocalStorage migration for bookings pending
 
-    function refreshList() {
-        setActivities(getMyActivities(user.id));
+    async function refreshList() {
+        setLoading(true);
+        const data = await getMyActivities(user.id);
+        setActivities(data);
+        setLoading(false);
         setActiveTab('list');
         setEditItem(null);
     }
 
-    function handleDelete(id) {
-        deleteActivity(id);
-        setActivities(getMyActivities(user.id));
+    async function handleDelete(id) {
+        if (!window.confirm('Sei sicuro di voler eliminare questa attività?')) return;
+        await deleteActivity(id);
+        refreshList();
     }
 
     function handleEdit(activity) {
-        setEditItem(activity);
+        setEditItem({
+            ...activity,
+            name: activity.title,
+            image: activity.image_url
+        });
         setActiveTab('new');
     }
 

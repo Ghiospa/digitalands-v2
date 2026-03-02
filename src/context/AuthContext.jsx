@@ -1,71 +1,103 @@
 import { createContext, useContext, useState, useEffect } from 'react';
+import { supabase } from '../lib/supabase';
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-    const [user, setUser] = useState(() => {
-        try {
-            const stored = localStorage.getItem('digitalands_user');
-            return stored ? JSON.parse(stored) : null;
-        } catch {
-            return null;
-        }
-    });
+    const [user, setUser] = useState(null);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        if (user) {
-            localStorage.setItem('digitalands_user', JSON.stringify(user));
+        // Check active session
+        supabase.auth.getSession().then(({ data: { session } }) => {
+            if (session) {
+                fetchProfile(session.user);
+            } else {
+                setLoading(false);
+            }
+        });
+
+        // Listen for changes
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+            if (session) {
+                fetchProfile(session.user);
+            } else {
+                setUser(null);
+                setLoading(false);
+            }
+        });
+
+        return () => subscription.unsubscribe();
+    }, []);
+
+    async function fetchProfile(authUser) {
+        const { data, error } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', authUser.id)
+            .single();
+
+        if (!error && data) {
+            setUser({ ...authUser, ...data, avatar: data.name?.charAt(0).toUpperCase() });
         } else {
-            localStorage.removeItem('digitalands_user');
+            setUser(authUser);
         }
-    }, [user]);
+        setLoading(false);
+    }
 
-    function register({ name, email, password, role = 'guest' }) {
-        const users = JSON.parse(localStorage.getItem('digitalands_users') || '[]');
-        if (users.find(u => u.email === email)) {
-            return { error: 'Email già registrata. Prova ad accedere.' };
-        }
-        const newUser = {
-            id: Date.now().toString(),
-            name,
+    async function register({ name, email, password, role = 'guest' }) {
+        const { data, error } = await supabase.auth.signUp({
             email,
-            role,
-            createdAt: new Date().toISOString(),
-            avatar: name.charAt(0).toUpperCase(),
-        };
-        users.push({ ...newUser, password });
-        localStorage.setItem('digitalands_users', JSON.stringify(users));
-        setUser(newUser);
+            password,
+            options: {
+                data: { name, role }
+            }
+        });
+
+        if (error) return { error: error.message };
+
+        if (data.user) {
+            // Profile is usually created via trigger in Supabase, 
+            // but we can also do it manually here if trigger isn't set.
+            const { error: profileError } = await supabase
+                .from('profiles')
+                .insert([{ id: data.user.id, name, role }]);
+
+            if (profileError) console.error('Error creating profile:', profileError);
+        }
+
         return { success: true };
     }
 
-    function login({ email, password }) {
-        const users = JSON.parse(localStorage.getItem('digitalands_users') || '[]');
-        const match = users.find(u => u.email === email && u.password === password);
-        if (!match) {
-            return { error: 'Email o password non corretti.' };
-        }
-        const { password: _pw, ...safeUser } = match;
-        setUser(safeUser);
+    async function login({ email, password }) {
+        const { data, error } = await supabase.auth.signInWithPassword({
+            email,
+            password,
+        });
+
+        if (error) return { error: error.message };
         return { success: true };
     }
 
-    function logout() {
-        setUser(null);
+    async function logout() {
+        await supabase.auth.signOut();
     }
 
-    function updateProfile({ name, email, role }) {
-        setUser(prev => ({ ...prev, name, email, ...(role ? { role } : {}) }));
-        const users = JSON.parse(localStorage.getItem('digitalands_users') || '[]');
-        const idx = users.findIndex(u => u.id === user.id);
-        if (idx !== -1) {
-            users[idx] = { ...users[idx], name, email, ...(role ? { role } : {}) };
-            localStorage.setItem('digitalands_users', JSON.stringify(users));
+    async function updateProfile({ name, role }) {
+        if (!user) return;
+        const { error } = await supabase
+            .from('profiles')
+            .update({ name, role, updated_at: new Date().toISOString() })
+            .eq('id', user.id);
+
+        if (!error) {
+            setUser(prev => ({ ...prev, name, role }));
         }
+        return { error };
     }
 
     return (
-        <AuthContext.Provider value={{ user, register, login, logout, updateProfile }}>
+        <AuthContext.Provider value={{ user, register, login, logout, updateProfile, loading }}>
             {children}
         </AuthContext.Provider>
     );

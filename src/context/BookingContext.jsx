@@ -1,48 +1,86 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
+import { supabase } from '../lib/supabase';
 
 const BookingContext = createContext(null);
 
 export function BookingProvider({ children }) {
     const { user } = useAuth();
-
-    const [bookings, setBookings] = useState(() => {
-        try {
-            return JSON.parse(localStorage.getItem('digitalands_bookings') || '[]');
-        } catch {
-            return [];
-        }
-    });
+    const [bookings, setBookings] = useState([]);
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
-        localStorage.setItem('digitalands_bookings', JSON.stringify(bookings));
-    }, [bookings]);
+        if (user) {
+            fetchUserBookings();
+        } else {
+            setBookings([]);
+        }
+    }, [user]);
 
-    function addBooking(booking) {
-        const newBooking = {
-            id: Date.now().toString(),
-            userId: user?.id,
-            createdAt: new Date().toISOString(),
-            status: 'confermata', // confermata | cancellata | in-attesa
-            ...booking,
-        };
-        setBookings(prev => [newBooking, ...prev]);
-        return newBooking;
+    async function fetchUserBookings() {
+        setLoading(true);
+        const { data, error } = await supabase
+            .from('bookings')
+            .select('*')
+            .eq('user_id', user.id)
+            .order('created_at', { ascending: false });
+
+        if (!error && data) {
+            setBookings(data);
+        }
+        setLoading(false);
     }
 
-    function cancelBooking(bookingId) {
-        setBookings(prev =>
-            prev.map(b => b.id === bookingId ? { ...b, status: 'cancellata' } : b)
-        );
+    async function addBooking(booking) {
+        if (!user) return { error: 'Devi essere loggato per prenotare.' };
+
+        const bookingData = {
+            user_id: user.id,
+            property_id: booking.propertyId,
+            activity_id: booking.activityId,
+            property_name: booking.propertyName,
+            activity_name: booking.activityName,
+            check_in: booking.checkIn,
+            check_out: booking.checkOut,
+            total_price: Number(booking.totalPrice || booking.price),
+            status: 'confermata',
+        };
+
+        const { data, error } = await supabase
+            .from('bookings')
+            .insert([bookingData])
+            .select()
+            .single();
+
+        if (error) {
+            console.error('Booking error:', error);
+            return { error: error.message };
+        }
+
+        setBookings(prev => [data, ...prev]);
+        return data;
+    }
+
+    async function cancelBooking(bookingId) {
+        const { error } = await supabase
+            .from('bookings')
+            .update({ status: 'cancellata' })
+            .eq('id', bookingId);
+
+        if (!error) {
+            setBookings(prev =>
+                prev.map(b => b.id === bookingId ? { ...b, status: 'cancellata' } : b)
+            );
+        }
+        return { error };
     }
 
     function getUserBookings() {
-        if (!user) return [];
-        return bookings.filter(b => b.userId === user.id);
+        return bookings;
     }
 
     return (
-        <BookingContext.Provider value={{ bookings, addBooking, cancelBooking, getUserBookings }}>
+        <BookingContext.Provider value={{ bookings, addBooking, cancelBooking, getUserBookings, loading }}>
             {children}
         </BookingContext.Provider>
     );

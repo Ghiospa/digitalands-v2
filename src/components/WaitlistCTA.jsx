@@ -1,17 +1,36 @@
 import { useState } from 'react';
+import { supabase } from '../lib/supabase';
 
 export default function WaitlistCTA() {
     const [email, setEmail] = useState('');
     const [status, setStatus] = useState('idle'); // idle | loading | success | error
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         if (!email || !email.includes('@')) return;
 
         setStatus('loading');
-        setTimeout(() => {
-            setStatus('success');
-        }, 900);
+
+        try {
+            const { error } = await supabase
+                .from('waitlist')
+                .insert([{ email }]);
+
+            if (error) {
+                // If already exists, we can still show success or a specific message
+                if (error.code === '23505') {
+                    setStatus('success');
+                } else {
+                    setStatus('error');
+                    console.error('Waitlist error:', error);
+                }
+            } else {
+                setStatus('success');
+            }
+        } catch (err) {
+            setStatus('error');
+            console.error('Submission error:', err);
+        }
     };
 
     return (

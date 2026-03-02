@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useI18n } from '../context/I18nContext';
@@ -16,37 +16,28 @@ const AMENITIES_LIST = [
     'Lavatrice', 'Smart TV', 'Barbecue',
 ];
 
-// Unsplash images for properties in Ragusa area
-const PROP_IMAGES = [
-    'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80',
-    'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600&q=80',
-    'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=600&q=80',
-];
+import { supabase } from '../lib/supabase';
 
-function getMyProperties(userId) {
-    try {
-        const all = JSON.parse(localStorage.getItem('digitalands_custom_properties') || '[]');
-        return all.filter(p => p.ownerId === userId);
-    } catch { return []; }
+async function getMyProperties(userId) {
+    const { data, error } = await supabase
+        .from('properties')
+        .select('*')
+        .eq('owner_id', userId)
+        .order('created_at', { ascending: false });
+
+    if (error) {
+        console.error('Error fetching properties:', error);
+        return [];
+    }
+    return data;
 }
 
-function getAllPropertyBookings(propertyIds) {
-    try {
-        const all = JSON.parse(localStorage.getItem('digitalands_bookings') || '[]');
-        return all.filter(b => propertyIds.includes(b.propertyId));
-    } catch { return []; }
-}
-
-function saveProperty(prop) {
-    const all = JSON.parse(localStorage.getItem('digitalands_custom_properties') || '[]');
-    const idx = all.findIndex(p => p.id === prop.id);
-    if (idx !== -1) { all[idx] = prop; } else { all.unshift(prop); }
-    localStorage.setItem('digitalands_custom_properties', JSON.stringify(all));
-}
-
-function deleteProperty(id) {
-    const all = JSON.parse(localStorage.getItem('digitalands_custom_properties') || '[]');
-    localStorage.setItem('digitalands_custom_properties', JSON.stringify(all.filter(p => p.id !== id)));
+async function deleteProperty(id) {
+    const { error } = await supabase
+        .from('properties')
+        .delete()
+        .eq('id', id);
+    if (error) console.error('Error deleting property:', error);
 }
 
 /* ─── Form ─── */
@@ -71,20 +62,39 @@ function PropertyForm({ user, onSaved, editItem }) {
         }));
     }
 
-    function handleSubmit(e) {
+    async function handleSubmit(e) {
         e.preventDefault();
-        const prop = {
-            ...form,
-            id: editItem?.id || `prop-${Date.now()}`,
-            ownerId: user.id,
-            ownerName: user.name,
-            pricePerNight: Number(form.pricePerNight),
-            image: form.image || PROP_IMAGES[Math.floor(Math.random() * PROP_IMAGES.length)],
-            type: 'custom',
+        const propData = {
+            owner_id: user.id,
+            name: form.name,
+            location: form.location,
+            comune: form.location, // In the dashboard form, 'location' seems to be used for Comune selection
+            price_per_night: Number(form.pricePerNight),
+            image_url: form.image || 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80',
+            description: form.description,
+            specs: form.amenities,
+            published: form.published,
         };
-        saveProperty(prop);
-        setSaved(true);
-        setTimeout(() => { onSaved(); setSaved(false); }, 1500);
+
+        let result;
+        if (editItem?.id) {
+            result = await supabase
+                .from('properties')
+                .update(propData)
+                .eq('id', editItem.id);
+        } else {
+            result = await supabase
+                .from('properties')
+                .insert([propData]);
+        }
+
+        if (result.error) {
+            console.error('Error saving property:', result.error);
+            alert('Errore nel salvataggio della proprietà.');
+        } else {
+            setSaved(true);
+            setTimeout(() => { onSaved(); setSaved(false); }, 1500);
+        }
     }
 
     const inputStyle = {
@@ -198,16 +208,15 @@ function ManagerPropCard({ property, onDelete, onEdit }) {
     const { t } = useI18n();
     return (
         <div style={{ background: 'var(--surface)', border: '1px solid var(--border-light)', borderRadius: '10px', padding: '18px', display: 'flex', alignItems: 'center', gap: '16px' }}>
-            <img src={property.image} alt={property.name} style={{ width: '70px', height: '60px', borderRadius: '8px', objectFit: 'cover', flexShrink: 0 }} />
+            <img src={property.image_url || property.image} alt={property.name} style={{ width: '70px', height: '60px', borderRadius: '8px', objectFit: 'cover', flexShrink: 0 }} />
             <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontWeight: 600, color: 'var(--text-primary)', marginBottom: '2px' }}>{property.name}</div>
                 <div style={{ fontSize: '12px', fontFamily: 'monospace', color: 'var(--text-muted)' }}>
-                    📍 {property.location} · €{property.pricePerNight}/notte
-                    {property.rooms && ` · ${property.rooms} camere`}
+                    📍 {property.comune || property.location} · €{property.price_per_night || property.pricePerNight}/notte
                 </div>
-                {property.amenities?.length > 0 && (
+                {(property.specs || property.amenities)?.length > 0 && (
                     <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '4px' }}>
-                        {property.amenities.slice(0, 4).join(' · ')}{property.amenities.length > 4 ? ' …' : ''}
+                        {(property.specs || property.amenities).slice(0, 4).join(' · ')}{(property.specs || property.amenities).length > 4 ? ' …' : ''}
                     </div>
                 )}
             </div>
@@ -227,27 +236,43 @@ export default function PropertyManagerDashboard() {
     const { t } = useI18n();
     const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState('list');
-    const [editItem, setEditItem] = useState(null);
-    const [properties, setProperties] = useState(() => user ? getMyProperties(user.id) : []);
+    const [properties, setProperties] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        if (user) refreshList();
+    }, [user]);
 
     if (!user) return <Navigate to="/auth?redirect=/manager/properties" replace />;
     if (user.role !== 'property_manager') return <Navigate to="/dashboard" replace />;
 
-    const bookings = getAllPropertyBookings(properties.map(p => p.id));
+    // For now bookings remain in localStorage as we didn't migrate them yet, 
+    // but in a real case we would fetch them from Supabase too.
+    const bookings = [];
 
-    function refreshList() {
-        setProperties(getMyProperties(user.id));
+    async function refreshList() {
+        setLoading(true);
+        const data = await getMyProperties(user.id);
+        setProperties(data);
+        setLoading(false);
         setActiveTab('list');
         setEditItem(null);
     }
 
-    function handleDelete(id) {
-        deleteProperty(id);
-        setProperties(getMyProperties(user.id));
+    async function handleDelete(id) {
+        if (!window.confirm('Sei sicuro di voler eliminare questa proprietà?')) return;
+        await deleteProperty(id);
+        refreshList();
     }
 
     function handleEdit(prop) {
-        setEditItem(prop);
+        // Map DB fields back to form names
+        setEditItem({
+            ...prop,
+            image: prop.image_url,
+            amenities: prop.specs || [],
+            pricePerNight: prop.price_per_night
+        });
         setActiveTab('new');
     }
 
