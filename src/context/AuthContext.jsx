@@ -50,7 +50,8 @@ export function AuthProvider({ children }) {
             email,
             password,
             options: {
-                data: { name, role }
+                data: { name, role },
+                emailRedirectTo: window.location.origin
             }
         });
 

@@ -92,6 +92,8 @@ function RegisterForm({ onSuccess }) {
         { value: 'property_manager', label: t('auth_role_property'), icon: '🏡' },
     ];
 
+    const [success, setSuccess] = useState(false);
+
     function validate() {
         const e = {};
         if (!form.name.trim()) e.name = 'Inserisci il tuo nome.';
@@ -109,7 +111,26 @@ function RegisterForm({ onSuccess }) {
         const res = await register(form);
         setLoading(false);
         if (res.error) { setGlobalError(res.error); return; }
-        onSuccess();
+        setSuccess(true);
+    }
+
+    if (success) {
+        return (
+            <div className="text-center py-8 animate-fade-in">
+                <div className="text-4xl mb-4">📧</div>
+                <h2 className="text-xl font-serif text-textPrimary mb-3">Quasi fatto!</h2>
+                <p className="text-sm text-textMuted mb-6">
+                    Ti abbiamo inviato un'email di conferma a <strong>{form.email}</strong>.<br />
+                    Clicca sul link per attivare il tuo profilo.
+                </p>
+                <button
+                    onClick={() => window.location.reload()}
+                    className="text-accent text-xs font-mono hover:underline"
+                >
+                    Torna al login
+                </button>
+            </div>
+        );
     }
 
     return (
