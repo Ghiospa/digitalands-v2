@@ -56,12 +56,8 @@ const SEED_PROPERTIES = [
     { id: 'p6', name: 'Vista Azzurra — Santa Croce', location: 'Santa Croce Camerina', pricePerNight: 110, lat: 36.8280, lng: 14.5270 },
 ];
 
-function getCustomActivities() {
-    try { return JSON.parse(localStorage.getItem('digitalands_custom_activities') || '[]').filter(a => a.published); } catch { return []; }
-}
-function getCustomProperties() {
-    try { return JSON.parse(localStorage.getItem('digitalands_custom_properties') || '[]').filter(p => p.published); } catch { return []; }
-}
+import { supabase } from '../lib/supabase';
+import { useEffect } from 'react';
 
 // Simple deterministic coordinate offset for custom items without coords
 const COMUNE_COORDS = {
@@ -75,15 +71,40 @@ const COMUNE_COORDS = {
 export default function MapPage() {
     const { t } = useI18n();
     const [filter, setFilter] = useState('all');
+    const [customActs, setCustomActs] = useState([]);
+    const [customProps, setCustomProps] = useState([]);
 
-    const customActs = getCustomActivities().map((a, i) => {
-        const base = COMUNE_COORDS[a.location] || [36.93, 14.72];
-        return { ...a, lat: base[0] + (i * 0.003), lng: base[1] + (i * 0.003) };
-    });
-    const customProps = getCustomProperties().map((p, i) => {
-        const base = COMUNE_COORDS[p.location] || [36.93, 14.72];
-        return { ...p, lat: base[0] - (i * 0.003), lng: base[1] - (i * 0.003) };
-    });
+    useEffect(() => {
+        async function fetchData() {
+            const [actsRes, propsRes] = await Promise.all([
+                supabase.from('activities').select('*').eq('published', true),
+                supabase.from('properties').select('*').eq('published', true)
+            ]);
+
+            if (!actsRes.error && actsRes.data) {
+                const mapped = actsRes.data.map((a, i) => {
+                    const base = COMUNE_COORDS[a.location] || [36.93, 14.72];
+                    return { ...a, name: a.title, lat: base[0] + (i * 0.003), lng: base[1] + (i * 0.003) };
+                });
+                setCustomActs(mapped);
+            }
+
+            if (!propsRes.error && propsRes.data) {
+                const mapped = propsRes.data.map((p, i) => {
+                    const base = COMUNE_COORDS[p.comune || p.location] || [36.93, 14.72];
+                    return {
+                        ...p,
+                        pricePerNight: p.price_per_night,
+                        location: p.comune || p.location,
+                        lat: base[0] - (i * 0.003),
+                        lng: base[1] - (i * 0.003)
+                    };
+                });
+                setCustomProps(mapped);
+            }
+        }
+        fetchData();
+    }, []);
 
     const allActivities = [...SEED_ACTIVITIES, ...customActs];
     const allProperties = [...SEED_PROPERTIES, ...customProps];

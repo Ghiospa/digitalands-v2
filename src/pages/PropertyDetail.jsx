@@ -5,19 +5,10 @@ import { useBookings } from '../context/BookingContext';
 
 import { SEED_PROPERTIES } from '../data/seedProperties';
 
-function getPropertyById(id) {
-    // Check seed properties
-    const seed = SEED_PROPERTIES.find(p => p.id === id);
-    if (seed) return seed;
+import { supabase } from '../lib/supabase';
 
-    // Check custom properties in local storage
-    try {
-        const custom = JSON.parse(localStorage.getItem('digitalands_custom_properties') || '[]');
-        return custom.find(p => p.id === id);
-    } catch (e) {
-        console.error('Error loading custom properties:', e);
-        return null;
-    }
+function getSeedPropertyById(id) {
+    return SEED_PROPERTIES.find(p => p.id === id);
 }
 
 // ── Mini Calendar ──────────────────────────────────────────────────
@@ -294,7 +285,48 @@ function Row({ label, value }) {
 export default function PropertyDetail() {
     const { id } = useParams();
     const navigate = useNavigate();
-    const property = getPropertyById(id);
+    const [property, setProperty] = useState(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        async function fetchProperty() {
+            setLoading(true);
+            // 1. Check seed first
+            const seed = getSeedPropertyById(id);
+            if (seed) {
+                setProperty(seed);
+                setLoading(false);
+                return;
+            }
+
+            // 2. Check Supabase
+            const { data, error } = await supabase
+                .from('properties')
+                .select('*')
+                .eq('id', id)
+                .single();
+
+            if (!error && data) {
+                setProperty({
+                    ...data,
+                    img: data.image_url,
+                    pricePerNight: data.price_per_night,
+                    amenities: data.specs || [],
+                    type: 'custom'
+                });
+            }
+            setLoading(false);
+        }
+        fetchProperty();
+    }, [id]);
+
+    if (loading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-accent"></div>
+            </div>
+        );
+    }
 
     if (!property) {
         return (
