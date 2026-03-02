@@ -43,17 +43,15 @@ function LoginForm({ onSuccess }) {
         return e;
     }
 
-    function handleSubmit(ev) {
+    async function handleSubmit(ev) {
         ev.preventDefault();
         const e = validate();
         if (Object.keys(e).length) { setErrors(e); return; }
         setLoading(true);
-        setTimeout(() => {
-            const res = login(form);
-            setLoading(false);
-            if (res.error) { setGlobalError(res.error); return; }
-            onSuccess();
-        }, 600);
+        const res = await login(form);
+        setLoading(false);
+        if (res.error) { setGlobalError(res.error); return; }
+        onSuccess();
     }
 
     return (

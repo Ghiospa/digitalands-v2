@@ -240,9 +240,15 @@ function ActivityBookingsTab({ bookings, onCancel }) {
 }
 
 export default function Dashboard() {
-    const { user, logout, updateProfile } = useAuth();
+    const { user, logout, updateProfile, loading } = useAuth();
     const { getUserBookings, cancelBooking } = useBookings();
     const [activeTab, setActiveTab] = useState('bookings');
+
+    if (loading) return (
+        <div className="min-h-screen flex items-center justify-center bg-bg">
+            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-accent"></div>
+        </div>
+    );
 
     if (!user) return <Navigate to="/auth?redirect=/dashboard" replace />;
 

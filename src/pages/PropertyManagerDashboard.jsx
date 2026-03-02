@@ -232,16 +232,23 @@ function ManagerPropCard({ property, onDelete, onEdit }) {
 }
 
 export default function PropertyManagerDashboard() {
-    const { user, logout } = useAuth();
+    const { user, logout, loading } = useAuth();
     const { t } = useI18n();
     const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState('list');
     const [properties, setProperties] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [loadingData, setLoadingData] = useState(true);
+    const [editItem, setEditItem] = useState(null);
 
     useEffect(() => {
         if (user) refreshList();
     }, [user]);
+
+    if (loading) return (
+        <div className="min-h-screen flex items-center justify-center bg-bg">
+            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-accent"></div>
+        </div>
+    );
 
     if (!user) return <Navigate to="/auth?redirect=/manager/properties" replace />;
     if (user.role !== 'property_manager') return <Navigate to="/dashboard" replace />;
@@ -251,10 +258,10 @@ export default function PropertyManagerDashboard() {
     const bookings = [];
 
     async function refreshList() {
-        setLoading(true);
+        setLoadingData(true);
         const data = await getMyProperties(user.id);
         setProperties(data);
-        setLoading(false);
+        setLoadingData(false);
         setActiveTab('list');
         setEditItem(null);
     }
