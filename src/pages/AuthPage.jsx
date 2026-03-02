@@ -79,7 +79,11 @@ function LoginForm({ onSuccess }) {
 function RegisterForm({ onSuccess }) {
     const { register } = useAuth();
     const { t } = useI18n();
-    const [form, setForm] = useState({ name: '', email: '', password: '', confirm: '', role: 'guest' });
+    const [form, setForm] = useState({
+        name: '', email: '', password: '', confirm: '', role: 'guest',
+        employment_type: 'freelance', profession: '', vat_number: '',
+        company_name: '', company_role: ''
+    });
     const [errors, setErrors] = useState({});
     const [globalError, setGlobalError] = useState('');
     const [loading, setLoading] = useState(false);
@@ -99,17 +103,15 @@ function RegisterForm({ onSuccess }) {
         return e;
     }
 
-    function handleSubmit(ev) {
+    async function handleSubmit(ev) {
         ev.preventDefault();
         const e = validate();
         if (Object.keys(e).length) { setErrors(e); return; }
         setLoading(true);
-        setTimeout(() => {
-            const res = register({ name: form.name, email: form.email, password: form.password, role: form.role });
-            setLoading(false);
-            if (res.error) { setGlobalError(res.error); return; }
-            onSuccess();
-        }, 600);
+        const res = await register(form);
+        setLoading(false);
+        if (res.error) { setGlobalError(res.error); return; }
+        onSuccess();
     }
 
     return (
@@ -156,6 +158,48 @@ function RegisterForm({ onSuccess }) {
             <InputField label="Nome completo" id="name" value={form.name}
                 onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
                 error={errors.name} placeholder="Marco Rossi" />
+
+            {/* Employment Type Selector */}
+            <div className="flex flex-col gap-2">
+                <label className="text-xs font-mono tracking-widest uppercase text-textMuted">{t('auth_employment_type')}</label>
+                <div className="flex gap-2">
+                    <button
+                        type="button"
+                        onClick={() => setForm(f => ({ ...f, employment_type: 'freelance' }))}
+                        className={`flex-1 py-2 text-[11px] font-mono rounded border transition-all ${form.employment_type === 'freelance' ? 'border-accent bg-accent-dim text-accent' : 'border-border-light text-textMuted'}`}
+                    >
+                        {t('auth_freelance')}
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => setForm(f => ({ ...f, employment_type: 'employee' }))}
+                        className={`flex-1 py-2 text-[11px] font-mono rounded border transition-all ${form.employment_type === 'employee' ? 'border-accent bg-accent-dim text-accent' : 'border-border-light text-textMuted'}`}
+                    >
+                        {t('auth_employee')}
+                    </button>
+                </div>
+            </div>
+
+            {form.employment_type === 'freelance' ? (
+                <>
+                    <InputField label={t('auth_profession')} id="profession" value={form.profession}
+                        onChange={e => setForm(f => ({ ...f, profession: e.target.value }))}
+                        placeholder="es. UI Designer" />
+                    <InputField label={t('auth_vat')} id="vat" value={form.vat_number}
+                        onChange={e => setForm(f => ({ ...f, vat_number: e.target.value }))}
+                        placeholder="PI123456789" />
+                </>
+            ) : (
+                <>
+                    <InputField label={t('auth_company_role')} id="company_role" value={form.company_role}
+                        onChange={e => setForm(f => ({ ...f, company_role: e.target.value }))}
+                        placeholder="es. Marketing Manager" />
+                    <InputField label={t('auth_company')} id="company" value={form.company_name}
+                        onChange={e => setForm(f => ({ ...f, company_name: e.target.value }))}
+                        placeholder="es. Acme Corp" />
+                </>
+            )}
+
             <InputField label="Email" id="reg-email" type="email" value={form.email}
                 onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
                 error={errors.email} placeholder="la-tua@email.com" />

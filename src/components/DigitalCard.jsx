@@ -156,7 +156,7 @@ export default function DigitalCard() {
                                 {user.name}
                             </div>
                             <div style={{ fontSize: '9px', fontFamily: 'monospace', letterSpacing: '0.1em', textTransform: 'uppercase', color: roleColor }}>
-                                {roleLabel}
+                                {user.profession || user.company_role || roleLabel}
                             </div>
                         </div>
                     </div>

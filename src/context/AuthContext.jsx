@@ -45,7 +45,7 @@ export function AuthProvider({ children }) {
         setLoading(false);
     }
 
-    async function register({ name, email, password, role = 'guest' }) {
+    async function register({ name, email, password, role = 'guest', ...profileData }) {
         const { data, error } = await supabase.auth.signUp({
             email,
             password,
@@ -57,11 +57,18 @@ export function AuthProvider({ children }) {
         if (error) return { error: error.message };
 
         if (data.user) {
-            // Profile is usually created via trigger in Supabase, 
-            // but we can also do it manually here if trigger isn't set.
             const { error: profileError } = await supabase
                 .from('profiles')
-                .insert([{ id: data.user.id, name, role }]);
+                .insert([{
+                    id: data.user.id,
+                    name,
+                    role,
+                    employment_type: profileData.employment_type,
+                    profession: profileData.profession,
+                    vat_number: profileData.vat_number,
+                    company_name: profileData.company_name,
+                    company_role: profileData.company_role
+                }]);
 
             if (profileError) console.error('Error creating profile:', profileError);
         }
@@ -83,15 +90,15 @@ export function AuthProvider({ children }) {
         await supabase.auth.signOut();
     }
 
-    async function updateProfile({ name, role }) {
+    async function updateProfile(profileData) {
         if (!user) return;
         const { error } = await supabase
             .from('profiles')
-            .update({ name, role, updated_at: new Date().toISOString() })
+            .update({ ...profileData, updated_at: new Date().toISOString() })
             .eq('id', user.id);
 
         if (!error) {
-            setUser(prev => ({ ...prev, name, role }));
+            setUser(prev => ({ ...prev, ...profileData }));
         }
         return { error };
     }

@@ -66,7 +66,16 @@ function BookingCard({ booking, onCancel }) {
 }
 
 function ProfileSection({ user, onUpdate }) {
-    const [form, setForm] = useState({ name: user.name, email: user.email });
+    const { t } = useI18n();
+    const [form, setForm] = useState({
+        name: user.name,
+        email: user.email,
+        employment_type: user.employment_type || 'freelance',
+        profession: user.profession || '',
+        vat_number: user.vat_number || '',
+        company_name: user.company_name || '',
+        company_role: user.company_role || ''
+    });
     const [saved, setSaved] = useState(false);
 
     function handleSave(e) {
@@ -77,17 +86,62 @@ function ProfileSection({ user, onUpdate }) {
     }
 
     return (
-        <form onSubmit={handleSave} className="space-y-4 max-w-sm">
+        <form onSubmit={handleSave} className="space-y-4 max-w-md">
             <div className="flex flex-col gap-1.5">
                 <label className="text-xs font-mono tracking-widest uppercase text-textMuted">Nome</label>
                 <input className="waitlist-input" value={form.name}
                     onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
             </div>
-            <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-mono tracking-widest uppercase text-textMuted">Email</label>
-                <input className="waitlist-input" type="email" value={form.email}
-                    onChange={e => setForm(f => ({ ...f, email: e.target.value }))} />
+
+            {/* Employment Type Selector */}
+            <div className="flex flex-col gap-2">
+                <label className="text-xs font-mono tracking-widest uppercase text-textMuted">{t('auth_employment_type')}</label>
+                <div className="flex gap-2">
+                    <button
+                        type="button"
+                        onClick={() => setForm(f => ({ ...f, employment_type: 'freelance' }))}
+                        className={`flex-1 py-2 text-[11px] font-mono rounded border transition-all ${form.employment_type === 'freelance' ? 'border-accent bg-accent-dim text-accent' : 'border-border-light text-textMuted'}`}
+                    >
+                        {t('auth_freelance')}
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => setForm(f => ({ ...f, employment_type: 'employee' }))}
+                        className={`flex-1 py-2 text-[11px] font-mono rounded border transition-all ${form.employment_type === 'employee' ? 'border-accent bg-accent-dim text-accent' : 'border-border-light text-textMuted'}`}
+                    >
+                        {t('auth_employee')}
+                    </button>
+                </div>
             </div>
+
+            {form.employment_type === 'freelance' ? (
+                <>
+                    <div className="flex flex-col gap-1.5">
+                        <label className="text-xs font-mono tracking-widest uppercase text-textMuted">{t('auth_profession')}</label>
+                        <input className="waitlist-input" value={form.profession}
+                            onChange={e => setForm(f => ({ ...f, profession: e.target.value }))} />
+                    </div>
+                    <div className="flex flex-col gap-1.5">
+                        <label className="text-xs font-mono tracking-widest uppercase text-textMuted">{t('auth_vat')}</label>
+                        <input className="waitlist-input" value={form.vat_number}
+                            onChange={e => setForm(f => ({ ...f, vat_number: e.target.value }))} />
+                    </div>
+                </>
+            ) : (
+                <>
+                    <div className="flex flex-col gap-1.5">
+                        <label className="text-xs font-mono tracking-widest uppercase text-textMuted">{t('auth_company_role')}</label>
+                        <input className="waitlist-input" value={form.company_role}
+                            onChange={e => setForm(f => ({ ...f, company_role: e.target.value }))} />
+                    </div>
+                    <div className="flex flex-col gap-1.5">
+                        <label className="text-xs font-mono tracking-widest uppercase text-textMuted">{t('auth_company')}</label>
+                        <input className="waitlist-input" value={form.company_name}
+                            onChange={e => setForm(f => ({ ...f, company_name: e.target.value }))} />
+                    </div>
+                </>
+            )}
+
             <button type="submit" className="btn-gold" style={{ padding: '11px 24px', fontSize: '0.85rem' }}>
                 {saved ? '✓ Salvato' : 'Salva modifiche'}
             </button>
