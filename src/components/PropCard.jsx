@@ -59,7 +59,7 @@ export default function PropCard({ prop }) {
 
                 <div className="mt-auto pt-4 border-t border-border flex items-center justify-between">
                     <div>
-                        <span className="font-semibold text-accent" style={{ fontSize: '20px' }}>{price}</span>
+                        <span className="font-semibold text-accent" style={{ fontSize: 'clamp(18px, 4vw, 20px)' }}>{price}</span>
                         <span className="text-xs text-textPrimary opacity-80"> / notte</span>
                     </div>
                     <Link

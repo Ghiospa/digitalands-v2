@@ -29,7 +29,7 @@ function IconLinkedIn() {
 export default function Footer() {
     return (
         <footer
-            className="px-6 md:px-10 pt-10 pb-8"
+            className="px-6 md:px-10 py-10 md:py-12"
             style={{ borderTop: '1px solid var(--border)' }}
         >
             <div className="max-w-content mx-auto">
@@ -46,12 +46,12 @@ export default function Footer() {
                     </div>
 
                     {/* Right: links + socials */}
-                    <div className="flex flex-wrap items-center gap-6">
+                    <div className="flex flex-wrap items-center gap-x-6 gap-y-4">
                         {LINKS.map(l => (
                             <a
                                 key={l.href + l.label}
                                 href={l.href}
-                                className="text-xs text-textMuted hover:text-textPrimary transition-colors duration-200 font-mono tracking-wider uppercase"
+                                className="text-[10px] md:text-xs text-textMuted hover:text-textPrimary transition-colors duration-200 font-mono tracking-wider uppercase"
                             >
                                 {l.label}
                             </a>

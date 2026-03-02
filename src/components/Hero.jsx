@@ -203,8 +203,8 @@ export default function Hero() {
     return (
         <section
             ref={heroRef}
-            className="relative min-h-screen flex flex-col items-center justify-center grid-bg overflow-hidden"
-            style={{ paddingTop: '80px', paddingBottom: '0' }}
+            className="relative min-h-[90vh] md:min-h-screen flex flex-col items-center justify-center grid-bg overflow-hidden"
+            style={{ paddingTop: '100px', paddingBottom: '0' }}
         >
             {/* ── Background glows ── */}
             <div className="absolute inset-0 pointer-events-none">
@@ -244,8 +244,8 @@ export default function Hero() {
             {/* ── Nature + Digital SVG decorations ── */}
             <div className="absolute inset-0 pointer-events-none flex items-center justify-center overflow-hidden">
                 {/* ── Sicily Outline Background ── */}
-                <div className="opacity-20 select-none pointer-events-none" style={{ transform: 'rotate(-5deg)' }}>
-                    <SicilyOutline size="clamp(350px, 90vw, 750px)" />
+                <div className="opacity-[0.12] md:opacity-20 select-none pointer-events-none" style={{ transform: 'rotate(-5deg)' }}>
+                    <SicilyOutline size="clamp(300px, 100vw, 750px)" />
                 </div>
 
                 {/* Digital Sun — top right */}
@@ -306,8 +306,8 @@ export default function Hero() {
 
                 <h1
                     data-hero
-                    className="reveal stagger-2 font-serif text-textPrimary leading-[1.1] tracking-[-0.02em] mb-6"
-                    style={{ fontSize: 'clamp(38px, 6vw, 68px)' }}
+                    className="reveal stagger-2 font-serif text-textPrimary leading-[1.1] tracking-[-0.02em] mb-6 px-2"
+                    style={{ fontSize: 'clamp(34px, 8vw, 68px)' }}
                 >
                     Work remotely.<br />
                     Live in{' '}
@@ -319,13 +319,13 @@ export default function Hero() {
                     }}>Sicily.</span>
                 </h1>
 
-                <p data-hero className="reveal stagger-3 text-textMuted leading-relaxed mb-10 max-w-[480px]" style={{ fontSize: '18px' }}>
+                <p data-hero className="reveal stagger-3 text-textMuted leading-relaxed mb-10 max-w-[480px] px-4" style={{ fontSize: 'clamp(16px, 4vw, 18px)' }}>
                     Appartamenti verificati, fibra garantita e una community di
                     professionisti remoti nella destinazione più sottovalutata d'Europa.
                 </p>
 
                 {/* Nature-digital inline badges */}
-                <div data-hero className="reveal stagger-3 flex flex-wrap gap-2 justify-center mb-8">
+                <div data-hero className="reveal stagger-3 flex flex-wrap gap-2 justify-center mb-8 px-4">
                     {[
                         { icon: '🍋', label: 'Slow living' },
                         { icon: '🌊', label: 'Mare cristallino' },
@@ -334,20 +334,21 @@ export default function Hero() {
                     ].map(b => (
                         <span key={b.label} style={{
                             display: 'inline-flex', alignItems: 'center', gap: '5px',
-                            fontSize: '11px', fontFamily: 'monospace', letterSpacing: '0.04em',
-                            padding: '5px 12px', borderRadius: '20px',
+                            fontSize: '10px', md: '11px', fontFamily: 'monospace', letterSpacing: '0.04em',
+                            padding: '4px 10px', md: '5px 12px', borderRadius: '20px',
                             background: 'rgba(212,168,83,0.07)',
                             border: '1px solid rgba(212,168,83,0.2)',
                             color: 'rgba(240,240,240,0.6)',
+                            whiteSpace: 'nowrap'
                         }}>
                             {b.icon} {b.label}
                         </span>
                     ))}
                 </div>
 
-                <div data-hero className="reveal stagger-4 flex items-center gap-3 flex-wrap justify-center mb-8">
-                    <a href="#waitlist" className="btn-gold">Iscriviti alla Waitlist</a>
-                    <a href="#properties" className="btn-ghost">Vedi le strutture →</a>
+                <div data-hero className="reveal stagger-4 flex items-center justify-center gap-3 flex-wrap mb-10 w-full px-6">
+                    <a href="#waitlist" className="btn-gold w-full sm:w-auto text-center py-4 sm:py-3.5">Iscriviti alla Waitlist</a>
+                    <a href="#properties" className="btn-ghost w-full sm:w-auto text-center py-4 sm:py-3.5">Vedi le strutture →</a>
                 </div>
 
                 <div data-hero className="reveal stagger-5 flex flex-col items-center gap-3">

@@ -16,7 +16,7 @@ export default function WaitlistCTA() {
 
     return (
         <section
-            className="py-28 px-6 md:px-10"
+            className="py-16 md:py-28 px-6 md:px-10"
             id="waitlist"
             style={{ background: 'var(--surface)' }}
         >

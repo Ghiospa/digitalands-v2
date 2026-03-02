@@ -36,11 +36,11 @@ const CARDS = [
 
 export default function WhySicily() {
     return (
-        <section className="py-28 px-6 md:px-10" id="why">
+        <section className="py-16 md:py-28 px-6 md:px-10" id="why">
             <div className="max-w-content mx-auto">
                 <div className="reveal" data-reveal>
                     <div className="section-chip">WHY SICILY</div>
-                    <h2 className="text-textPrimary font-serif mt-2 mb-4" style={{ fontSize: '40px', lineHeight: '1.15' }}>
+                    <h2 className="text-textPrimary font-serif mt-2 mb-4 section-title">
                         Non Bali. Non Lisbona.<br />
                         <em style={{ fontStyle: 'italic', color: 'var(--accent)' }}>Qualcosa di meglio.</em>
                     </h2>

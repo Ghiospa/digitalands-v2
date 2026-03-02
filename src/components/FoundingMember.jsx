@@ -18,19 +18,19 @@ const STATS = [
 export default function FoundingMember() {
     return (
         <section
-            className="py-28 px-6 md:px-10"
+            className="py-16 md:py-28 px-6 md:px-10"
             id="community"
             style={{
                 background: 'radial-gradient(ellipse 80% 60% at 60% 50%, rgba(212,168,83,0.032) 0%, transparent 70%), var(--bg)',
             }}
         >
             <div className="max-w-content mx-auto">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-16 items-center">
 
                     {/* LEFT */}
                     <div data-reveal className="reveal">
                         <div className="section-chip">LIMITED · 20 SPOTS</div>
-                        <h2 className="font-serif text-textPrimary mt-2 mb-5" style={{ fontSize: '38px', lineHeight: '1.15' }}>
+                        <h2 className="font-serif text-textPrimary mt-2 mb-5 section-title">
                             Founding Member Pack
                         </h2>
                         <p className="text-textMuted text-base leading-relaxed mb-8 max-w-md">

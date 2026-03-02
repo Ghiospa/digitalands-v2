@@ -24,11 +24,11 @@ const TESTIMONIALS = [
 
 export default function Testimonials() {
     return (
-        <section className="py-28 px-6 md:px-10" style={{ background: 'var(--surface)' }}>
+        <section className="py-16 md:py-28 px-6 md:px-10" style={{ background: 'var(--surface)' }}>
             <div className="max-w-content mx-auto">
-                <div data-reveal className="reveal mb-14">
+                <div data-reveal className="reveal mb-10 md:mb-14">
                     <div className="section-chip">EARLY MEMBERS</div>
-                    <h2 className="font-serif text-textPrimary mt-2" style={{ fontSize: '40px', lineHeight: '1.15' }}>
+                    <h2 className="font-serif text-textPrimary mt-2 section-title">
                         Dal primo gruppo.
                     </h2>
                 </div>

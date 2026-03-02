@@ -22,10 +22,11 @@ function LangSwitcher() {
                 style={{
                     display: 'flex', alignItems: 'center', gap: '5px',
                     background: 'none', border: '1px solid var(--border-light)',
-                    borderRadius: '6px', padding: '5px 10px',
+                    borderRadius: '6px', padding: '4px 8px',
                     cursor: 'pointer', color: 'var(--text-muted)',
-                    fontSize: '0.78rem', fontFamily: 'monospace',
+                    fontSize: '0.72rem', fontFamily: 'monospace',
                     transition: 'border-color 0.2s, color 0.2s',
+                    whiteSpace: 'nowrap'
                 }}
                 onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.color = 'var(--accent)'; }}
                 onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-light)'; e.currentTarget.style.color = 'var(--text-muted)'; }}
@@ -125,6 +126,11 @@ export default function Navbar() {
                         </Link>
                     </li>
                     <li>
+                        <Link to="/blog" className="text-sm text-white hover:text-accent transition-colors duration-200">
+                            Blog
+                        </Link>
+                    </li>
+                    <li>
                         <a href="/#partners" className="text-sm text-white hover:text-accent transition-colors duration-200">
                             {t('nav_partners')}
                         </a>
@@ -172,7 +178,7 @@ export default function Navbar() {
 
                 {/* Mobile toggle */}
                 <button
-                    className="md:hidden flex flex-col gap-1.5 p-2"
+                    className="md:hidden flex flex-col gap-1.5 p-2 mr-[-8px]"
                     onClick={() => setMenuOpen(o => !o)}
                     aria-label="Toggle menu"
                 >
@@ -184,41 +190,50 @@ export default function Navbar() {
 
             {/* Mobile menu */}
             {menuOpen && (
-                <div className="md:hidden bg-surface border-t border-border px-6 py-5 flex flex-col gap-4">
-                    <a href="/#process" className="text-base text-textMuted" onClick={() => setMenuOpen(false)}>{t('nav_how')}</a>
-                    <Link to="/strutture" className="text-base text-textMuted" onClick={() => setMenuOpen(false)}>{t('nav_properties')}</Link>
-                    <a href="/#community" className="text-base text-textMuted" onClick={() => setMenuOpen(false)}>{t('nav_community')}</a>
-                    <Link to="/activities" className="text-base text-textMuted" onClick={() => setMenuOpen(false)}>{t('nav_activities')}</Link>
-                    <Link to="/mappa" className="text-base text-textMuted" onClick={() => setMenuOpen(false)}>{t('nav_map')}</Link>
-                    <a href="/#partners" className="text-base text-textMuted" onClick={() => setMenuOpen(false)}>{t('nav_partners')}</a>
-                    {user ? (
-                        <>
-                            {managerPath && (
-                                <Link to={managerPath} className="text-base" style={{ color: 'var(--accent)' }} onClick={() => setMenuOpen(false)}>
-                                    {t('nav_manager')} ↗
-                                </Link>
-                            )}
-                            <Link to="/dashboard" className="text-base text-textMuted" onClick={() => setMenuOpen(false)}>{t('nav_dashboard')}</Link>
-                            <div className="pt-2 border-t" style={{ borderColor: 'var(--border)' }}>
-                                <div className="flex items-center gap-2 mb-3">
-                                    <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-bg"
-                                        style={{ background: 'var(--accent)' }}>
-                                        {user.name?.charAt(0).toUpperCase()}
+                <div className="md:hidden bg-surface border-t border-border px-6 py-6 flex flex-col gap-5 overflow-y-auto max-h-[calc(100vh-64px)]">
+                    <div className="flex flex-col gap-4">
+                        <a href="/#process" className="text-sm font-medium text-textMuted hover:text-accent transition-colors" onClick={() => setMenuOpen(false)}>{t('nav_how')}</a>
+                        <Link to="/strutture" className="text-sm font-medium text-textMuted hover:text-accent transition-colors" onClick={() => setMenuOpen(false)}>{t('nav_properties')}</Link>
+                        <a href="/#community" className="text-sm font-medium text-textMuted hover:text-accent transition-colors" onClick={() => setMenuOpen(false)}>{t('nav_community')}</a>
+                        <Link to="/activities" className="text-sm font-medium text-textMuted hover:text-accent transition-colors" onClick={() => setMenuOpen(false)}>{t('nav_activities')}</Link>
+                        <Link to="/blog" className="text-sm font-medium text-textMuted hover:text-accent transition-colors" onClick={() => setMenuOpen(false)}>Blog</Link>
+                        <Link to="/mappa" className="text-sm font-medium text-textMuted hover:text-accent transition-colors" onClick={() => setMenuOpen(false)}>{t('nav_map')}</Link>
+                        <a href="/#partners" className="text-sm font-medium text-textMuted hover:text-accent transition-colors" onClick={() => setMenuOpen(false)}>{t('nav_partners')}</a>
+                    </div>
+
+                    <div className="pt-5 border-t border-border-light flex flex-col gap-4">
+                        {user ? (
+                            <>
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-bg"
+                                            style={{ background: 'var(--accent)' }}>
+                                            {user.name?.charAt(0).toUpperCase()}
+                                        </div>
+                                        <span className="text-sm font-medium text-textPrimary">{user.name}</span>
                                     </div>
-                                    <span className="text-sm text-textPrimary">{user.name}</span>
+                                    <LangSwitcher />
                                 </div>
-                                <LangSwitcher />
-                                <button onClick={handleLogout} className="btn-ghost mt-3 text-left w-full" style={{ fontSize: '0.9rem' }}>{t('nav_logout')}</button>
+                                {managerPath && (
+                                    <Link to={managerPath} className="text-sm font-mono" style={{ color: 'var(--accent)' }} onClick={() => setMenuOpen(false)}>
+                                        {t('nav_manager')} ↗
+                                    </Link>
+                                )}
+                                <Link to="/dashboard" className="text-sm text-textMuted" onClick={() => setMenuOpen(false)}>{t('nav_dashboard')}</Link>
+                                <button onClick={handleLogout} className="text-sm text-left text-textMuted font-mono hover:text-accent transition-colors">{t('nav_logout')}</button>
+                            </>
+                        ) : (
+                            <div className="flex flex-col gap-4">
+                                <div className="flex items-center justify-between">
+                                    <span className="text-xs font-mono text-textSubtle tracking-widest uppercase">Language</span>
+                                    <LangSwitcher />
+                                </div>
+                                <Link to="/auth" className="btn-gold text-center py-3" onClick={() => setMenuOpen(false)}>
+                                    {t('nav_login')} / {t('nav_register')}
+                                </Link>
                             </div>
-                        </>
-                    ) : (
-                        <div className="flex flex-col gap-3">
-                            <LangSwitcher />
-                            <Link to="/auth" className="btn-gold mt-2 text-center" onClick={() => setMenuOpen(false)}>
-                                {t('nav_login')} / {t('nav_register')}
-                            </Link>
-                        </div>
-                    )}
+                        )}
+                    </div>
                 </div>
             )}
         </nav>

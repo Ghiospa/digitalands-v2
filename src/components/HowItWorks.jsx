@@ -18,11 +18,11 @@ const STEPS = [
 
 export default function HowItWorks() {
     return (
-        <section className="py-28 px-6 md:px-10" id="process" style={{ background: 'var(--surface)' }}>
+        <section className="py-16 md:py-28 px-6 md:px-10" id="process" style={{ background: 'var(--surface)' }}>
             <div className="max-w-content mx-auto">
                 <div className="reveal" data-reveal>
                     <div className="section-chip">PROCESS</div>
-                    <h2 className="text-textPrimary font-serif mt-2 mb-16" style={{ fontSize: '40px', lineHeight: '1.15' }}>
+                    <h2 className="text-textPrimary font-serif mt-2 mb-10 md:mb-16 section-title">
                         Tre passi per la tua prossima base.
                     </h2>
                 </div>

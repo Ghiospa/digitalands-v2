@@ -84,8 +84,8 @@ export default function Partners() {
     const { t } = useI18n();
 
     return (
-        <section id="partners" style={{ padding: '100px 24px', borderTop: '1px solid var(--border)' }}>
-            <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+        <section id="partners" className="py-16 md:py-28 px-6 md:px-10" style={{ borderTop: '1px solid var(--border)' }}>
+            <div className="max-w-content mx-auto">
 
                 {/* Header */}
                 <div style={{ textAlign: 'center', marginBottom: '60px' }}>

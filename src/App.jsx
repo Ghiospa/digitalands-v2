@@ -24,11 +24,15 @@ import MapPage from './pages/MapPage';
 import ActivityManagerDashboard from './pages/ActivityManagerDashboard';
 import PropertyManagerDashboard from './pages/PropertyManagerDashboard';
 import PropertiesPage from './pages/PropertiesPage';
+import BlogPage from './pages/BlogPage';
+import BlogPostDetail from './pages/BlogPostDetail';
+import { injectJSONLD } from './utils/seo';
 
 import './index.css';
 
 function LandingPage() {
     useEffect(() => {
+        injectJSONLD();
         const els = document.querySelectorAll('[data-reveal]');
         if (!els.length) return;
         const observer = new IntersectionObserver(
@@ -118,6 +122,8 @@ export default function App() {
                                     <Route path="/manager/properties" element={<PropertyManagerDashboard />} />
                                     <Route path="/strutture" element={<PropertiesPage />} />
                                     <Route path="/properties" element={<PropertiesPage />} />
+                                    <Route path="/blog" element={<BlogPage />} />
+                                    <Route path="/blog/:slug" element={<BlogPostDetail />} />
                                     {/* Fallback */}
                                     <Route path="*" element={<LandingPage />} />
                                 </Routes>
