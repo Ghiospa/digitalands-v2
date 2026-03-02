@@ -44,7 +44,7 @@ function LangSwitcher() {
                         <button key={l.code} onClick={() => { changeLang(l.code); setOpen(false); }}
                             style={{
                                 display: 'flex', alignItems: 'center', gap: '8px',
-                                width: '100%', padding: '9px 14px', background: 'none',
+                                width: '100%', padding: '9px 14px',
                                 border: 'none', cursor: 'pointer', textAlign: 'left',
                                 fontSize: '0.82rem', fontFamily: 'monospace',
                                 color: lang === l.code ? 'var(--accent)' : 'var(--text-muted)',

@@ -334,8 +334,8 @@ export default function Hero() {
                     ].map(b => (
                         <span key={b.label} style={{
                             display: 'inline-flex', alignItems: 'center', gap: '5px',
-                            fontSize: '10px', md: '11px', fontFamily: 'monospace', letterSpacing: '0.04em',
-                            padding: '4px 10px', md: '5px 12px', borderRadius: '20px',
+                            fontSize: '10px', fontFamily: 'monospace', letterSpacing: '0.04em',
+                            padding: '4px 10px', borderRadius: '20px',
                             background: 'rgba(212,168,83,0.07)',
                             border: '1px solid rgba(212,168,83,0.2)',
                             color: 'rgba(240,240,240,0.6)',
