@@ -12,9 +12,9 @@ import HowItWorks from './components/HowItWorks';
 import Properties from './components/Properties';
 import FoundingMember from './components/FoundingMember';
 import Testimonials from './components/Testimonials';
-import Partners from './components/Partners';
 import WaitlistCTA from './components/WaitlistCTA';
 import Footer from './components/Footer';
+import OnboardingOverlay from './components/OnboardingOverlay';
 
 import AuthPage from './pages/AuthPage';
 import PropertyDetail from './pages/PropertyDetail';
@@ -111,6 +111,7 @@ export default function App() {
                         <BookingProvider>
                             <div style={{ background: 'var(--bg)', minHeight: '100vh' }}>
                                 <Navbar />
+                                <OnboardingOverlay />
                                 <Routes>
                                     <Route path="/" element={<LandingPage />} />
                                     <Route path="/auth" element={<AuthPage />} />

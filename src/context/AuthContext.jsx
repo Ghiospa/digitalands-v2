@@ -38,7 +38,7 @@ export function AuthProvider({ children }) {
             .single();
 
         if (!error && data) {
-            setUser({ ...authUser, ...data, avatar: data.name?.charAt(0).toUpperCase() });
+            setUser({ ...authUser, ...data, avatar: data.name?.charAt(0).toUpperCase(), stats_metadata: data.stats_metadata || {} });
         } else {
             setUser(authUser);
         }

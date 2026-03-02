@@ -361,6 +361,23 @@ export default function Dashboard() {
                         <div>
                             <div className="text-sm text-textMuted mb-6">Modifica le informazioni del tuo profilo Digitalands.</div>
                             <ProfileSection user={user} onUpdate={updateProfile} />
+
+                            {user.stats_metadata && Object.keys(user.stats_metadata).length > 0 && (
+                                <div style={{ marginTop: '32px', padding: '20px', borderRadius: '12px', border: '1px solid var(--border-light)', background: 'var(--bg)' }}>
+                                    <div className="text-[10px] font-mono tracking-widest uppercase text-textMuted mb-4">Dettagli Analisi</div>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        {Object.entries(user.stats_metadata).map(([key, value]) => (
+                                            key !== 'completed_at' && (
+                                                <div key={key}>
+                                                    <div className="text-[9px] font-mono text-textMuted uppercase mb-1">{key.replace('_', ' ')}</div>
+                                                    <div className="text-xs text-textPrimary">{Array.isArray(value) ? value.join(', ') : value}</div>
+                                                </div>
+                                            )
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
                             {(user.role === 'activity_manager' || user.role === 'property_manager') && (
                                 <div style={{ marginTop: '24px', padding: '16px', borderRadius: '8px', border: '1px solid rgba(212,168,83,0.2)', background: 'var(--accent-dim)' }}>
                                     <div style={{ fontSize: '11px', fontFamily: 'monospace', letterSpacing: '0.08em', color: 'var(--accent)', marginBottom: '8px' }}>AREA MANAGER</div>
