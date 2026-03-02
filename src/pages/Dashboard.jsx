@@ -104,25 +104,11 @@ const CAT_COLORS = {
     'Food & Wine': '#D4A853',
 };
 
-function ActivityBookingsTab({ userId }) {
+function ActivityBookingsTab({ bookings, onCancel }) {
     const navigate = useNavigate();
-    const [bookings, setBookings] = useState(() => {
-        try {
-            const all = JSON.parse(localStorage.getItem('digitalands_activity_bookings') || '[]');
-            return all.filter(b => b.userId === userId);
-        } catch { return []; }
-    });
+    const activityBookings = bookings.filter(b => b.activity_id);
 
-    function cancelBooking(id) {
-        try {
-            const all = JSON.parse(localStorage.getItem('digitalands_activity_bookings') || '[]');
-            const updated = all.map(b => b.id === id ? { ...b, status: 'cancellata' } : b);
-            localStorage.setItem('digitalands_activity_bookings', JSON.stringify(updated));
-            setBookings(updated.filter(b => b.userId === userId));
-        } catch { /* ignore */ }
-    }
-
-    if (bookings.length === 0) {
+    if (activityBookings.length === 0) {
         return (
             <div className="text-center py-20 text-textMuted">
                 <div className="text-4xl mb-4">🏄</div>
@@ -136,24 +122,24 @@ function ActivityBookingsTab({ userId }) {
 
     return (
         <div className="space-y-4">
-            {bookings.map(b => {
+            {activityBookings.map(b => {
                 const catColor = CAT_COLORS[b.category] || 'var(--accent)';
-                const isPast = new Date(b.date) < new Date();
+                const isPast = new Date(b.check_in || b.date) < new Date();
                 return (
                     <div key={b.id} className="rounded-lg p-5"
                         style={{ background: 'var(--surface)', border: '1px solid var(--border-light)' }}>
                         <div className="flex items-start justify-between gap-4 mb-4">
                             <div className="flex items-center gap-3">
-                                <span style={{ fontSize: '1.5rem' }}>{b.emoji}</span>
+                                <span style={{ fontSize: '1.5rem' }}>{b.emoji || '✨'}</span>
                                 <div>
-                                    <div className="font-medium text-textPrimary mb-0.5">{b.activityName}</div>
+                                    <div className="font-medium text-textPrimary mb-0.5">{b.activity_name || b.activityName}</div>
                                     <span style={{
                                         fontSize: '10px', fontFamily: 'monospace', letterSpacing: '0.08em',
                                         textTransform: 'uppercase', fontWeight: 600,
                                         color: catColor, background: `${catColor}18`,
                                         padding: '2px 8px', borderRadius: '4px',
                                         border: `1px solid ${catColor}33`,
-                                    }}>{b.category}</span>
+                                    }}>{b.category || 'Esperienza'}</span>
                                 </div>
                             </div>
                             <span className="font-mono text-[10px] tracking-widest uppercase px-2.5 py-1 rounded"
@@ -169,16 +155,16 @@ function ActivityBookingsTab({ userId }) {
                             <div>
                                 <div className="text-[10px] font-mono tracking-widest uppercase text-textMuted mb-1">Data</div>
                                 <div className="text-sm text-textPrimary">
-                                    {new Date(b.date + 'T12:00:00').toLocaleDateString('it-IT', { day: '2-digit', month: 'short', year: '2-digit' })}
+                                    {new Date(b.check_in || b.date).toLocaleDateString('it-IT', { day: '2-digit', month: 'short', year: '2-digit' })}
                                 </div>
                             </div>
                             <div>
-                                <div className="text-[10px] font-mono tracking-widest uppercase text-textMuted mb-1">Durata</div>
-                                <div className="text-sm text-textPrimary">{b.duration}</div>
+                                <div className="text-[10px] font-mono tracking-widest uppercase text-textMuted mb-1">Dettaglio</div>
+                                <div className="text-sm text-textPrimary">{b.property_name || 'Slot prenotato'}</div>
                             </div>
                             <div>
                                 <div className="text-[10px] font-mono tracking-widest uppercase text-textMuted mb-1">Totale</div>
-                                <div className="text-sm" style={{ color: 'var(--accent)' }}>€{b.price}</div>
+                                <div className="text-sm" style={{ color: 'var(--accent)' }}>€{b.total_price || b.price}</div>
                             </div>
                         </div>
                         <div className="flex items-center justify-between pt-3 border-t" style={{ borderColor: 'var(--border)' }}>
@@ -186,7 +172,7 @@ function ActivityBookingsTab({ userId }) {
                                 Vedi tutte le attività →
                             </Link>
                             {b.status === 'confermata' && !isPast && (
-                                <button onClick={() => cancelBooking(b.id)}
+                                <button onClick={() => onCancel(b.id)}
                                     className="text-xs text-textMuted hover:text-red-400 transition-colors font-mono">
                                     Cancella
                                 </button>
@@ -207,8 +193,11 @@ export default function Dashboard() {
     if (!user) return <Navigate to="/auth?redirect=/dashboard" replace />;
 
     const bookings = getUserBookings();
-    const upcoming = bookings.filter(b => b.status !== 'cancellata' && new Date(b.checkIn) > new Date());
-    const past = bookings.filter(b => b.status === 'cancellata' || new Date(b.checkOut) <= new Date());
+    const propertyBookings = bookings.filter(b => b.property_id);
+    const activityBookings = bookings.filter(b => b.activity_id);
+
+    const upcoming = propertyBookings.filter(b => b.status !== 'cancellata' && new Date(b.check_in) > new Date());
+    const past = propertyBookings.filter(b => b.status === 'cancellata' || new Date(b.check_out) <= new Date());
 
     const tabs = [
         { id: 'bookings', label: 'Prenotazioni' },
@@ -276,7 +265,7 @@ export default function Dashboard() {
 
                 {/* Tab: Activities */}
                 {activeTab === 'activities' && (
-                    <ActivityBookingsTab userId={user.id} />
+                    <ActivityBookingsTab bookings={bookings} onCancel={cancelBooking} />
                 )}
 
                 {/* Tab: Bookings */}

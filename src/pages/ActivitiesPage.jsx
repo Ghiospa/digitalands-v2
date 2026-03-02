@@ -117,15 +117,7 @@ const CAT_COLORS = {
     'Food & Wine': { color: '#D4A853', bg: 'rgba(212,168,83,0.10)' },
 };
 
-/* ─── Booking storage helpers ─── */
-function getActivityBookings() {
-    try {
-        return JSON.parse(localStorage.getItem('digitalands_activity_bookings') || '[]');
-    } catch { return []; }
-}
-function saveActivityBookings(list) {
-    localStorage.setItem('digitalands_activity_bookings', JSON.stringify(list));
-}
+import { useBookings } from '../context/BookingContext';
 
 /* ─── Badge ─── */
 function CategoryBadge({ cat }) {
@@ -359,7 +351,7 @@ function BookingModal({ activity, onClose, onConfirm }) {
 /* ─── Main Page ─── */
 export default function ActivitiesPage() {
     const { user } = useAuth();
-    const navigate = useNavigate();
+    const { addBooking } = useBookings();
     const [activeCategory, setActiveCategory] = useState('Tutto');
     const [bookingActivity, setBookingActivity] = useState(null);
 
@@ -375,24 +367,16 @@ export default function ActivitiesPage() {
         setBookingActivity(activity);
     }
 
-    function handleConfirm({ activity, date, timeSlot }) {
-        const bookings = getActivityBookings();
-        bookings.unshift({
-            id: `act-${Date.now()}`,
-            userId: user.id,
+    async function handleConfirm({ activity, date, timeSlot }) {
+        await addBooking({
             activityId: activity.id,
             activityName: activity.name,
             category: activity.category,
             emoji: activity.emoji,
-            date,
-            timeSlot: timeSlot || null,
+            checkIn: date,
             price: activity.price,
-            duration: activity.duration,
-            location: activity.location || null,
             status: 'confermata',
-            bookedAt: new Date().toISOString(),
         });
-        saveActivityBookings(bookings);
     }
 
     return (
@@ -507,8 +491,8 @@ export default function ActivitiesPage() {
                 <BookingModal
                     activity={bookingActivity}
                     onClose={() => setBookingActivity(null)}
-                    onConfirm={({ activity, date }) => {
-                        handleConfirm({ activity, date });
+                    onConfirm={({ activity, date, timeSlot }) => {
+                        handleConfirm({ activity, date, timeSlot });
                     }}
                 />
             )}
