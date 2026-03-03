@@ -305,7 +305,7 @@ export default function Hero() {
             {/* ── Main content ── */}
             <div className="relative z-10 text-center px-6 max-w-3xl mx-auto w-full flex flex-col items-center">
 
-                <div data-hero className="reveal stagger-1 section-chip mb-8">
+                <div data-hero className="reveal stagger-1 section-chip !border-white/30 !text-white/80 mb-8">
                     <span className="text-accent">·</span> MARINA DI RAGUSA, SICILY
                 </div>
 
@@ -341,8 +341,8 @@ export default function Hero() {
                             display: 'inline-flex', alignItems: 'center', gap: '5px',
                             fontSize: '10px', fontFamily: 'monospace', letterSpacing: '0.04em',
                             padding: '4px 10px', borderRadius: '20px',
-                            background: 'var(--accent-dim)',
-                            border: '1px solid var(--border)',
+                            background: 'rgba(212, 168, 83, 0.1)',
+                            border: '1px solid rgba(255, 255, 255, 0.2)',
                             color: 'rgba(255, 255, 255, 0.7)',
                             whiteSpace: 'nowrap'
                         }}>
@@ -353,7 +353,7 @@ export default function Hero() {
 
                 <div data-hero className="reveal stagger-4 flex items-center justify-center gap-3 flex-wrap mb-10 w-full px-6">
                     <a href="#waitlist" className="btn-gold w-full sm:w-auto text-center py-4 sm:py-3.5">Iscriviti alla Waitlist</a>
-                    <a href="#properties" className="btn-ghost w-full sm:w-auto text-center py-4 sm:py-3.5">Vedi le strutture →</a>
+                    <a href="#properties" className="btn-ghost w-full sm:w-auto text-center py-4 sm:py-3.5 !text-white !border-white/30 hover:!border-white/60">Vedi le strutture →</a>
                 </div>
 
                 <div data-hero className="reveal stagger-5 flex flex-col items-center gap-3">
@@ -374,13 +374,13 @@ export default function Hero() {
             </div>
 
             {/* ── Bottom stats bar ── */}
-            <div className="relative z-10 w-full mt-20 border-t border-border">
+            <div className="relative z-10 w-full mt-20 border-t border-white/10">
                 <div className="max-w-content mx-auto px-6 md:px-10">
-                    <div className="flex flex-col md:flex-row items-center justify-center divide-y md:divide-y-0 md:divide-x divide-border">
+                    <div className="flex flex-col md:flex-row items-center justify-center divide-y md:divide-y-0 md:divide-x divide-white/10">
                         {STATS.map((s, i) => (
                             <div key={i} className="flex items-center gap-2 px-8 py-5">
-                                <span className="font-mono text-sm font-medium" style={{ color: 'var(--text-primary)' }}>{s.value}</span>
-                                <span className="text-sm text-textMuted">{s.suffix}</span>
+                                <span className="font-mono text-sm font-medium text-white">{s.value}</span>
+                                <span className="font-mono text-[10px] uppercase tracking-wider text-white/60">{s.suffix}</span>
                                 {i < STATS.length - 1 && <span className="hidden md:inline ml-2 text-accent opacity-40">·</span>}
                             </div>
                         ))}
