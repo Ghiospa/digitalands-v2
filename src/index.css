@@ -31,6 +31,7 @@ body {
 /* ── CSS custom variables ── */
 :root {
     --bg: #0A0A0A;
+    --bg-rgb: 10, 10, 10;
     --surface: #111111;
     --surface-2: #1A1A1A;
     --border: #222222;
@@ -44,6 +45,7 @@ body {
 
 .light-theme {
     --bg: #F9FAFB;
+    --bg-rgb: 249, 250, 251;
     --surface: #FFFFFF;
     --surface-2: #F3F4F6;
     --border: #E5E7EB;
