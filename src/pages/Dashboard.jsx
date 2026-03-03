@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useBookings } from '../context/BookingContext';
 import { useI18n } from '../context/I18nContext';
 import DigitalCard from '../components/DigitalCard';
+import { CAT_COLORS } from '../data/categories';
 
 const StatusBadge = memo(function StatusBadge({ status }) {
     const map = {
@@ -150,14 +151,6 @@ const ProfileSection = memo(function ProfileSection({ user, onUpdate }) {
     );
 });
 
-const CAT_COLORS = {
-    'Surf': '#60a5fa',
-    'Kite Surf': '#a78bfa',
-    'Yoga': '#4ade80',
-    'Escursioni': '#fb923c',
-    'Snorkeling': '#22d3ee',
-    'Food & Wine': '#D4A853',
-};
 
 const ActivityBookingsTab = memo(function ActivityBookingsTab({ bookings, onCancel }) {
     const navigate = useNavigate();
@@ -178,7 +171,7 @@ const ActivityBookingsTab = memo(function ActivityBookingsTab({ bookings, onCanc
     return (
         <div className="space-y-4">
             {activityBookings.map(b => {
-                const catColor = CAT_COLORS[b.category] || 'var(--accent)';
+                const catColor = CAT_COLORS[b.category]?.color || 'var(--accent)';
                 const isPast = new Date(b.check_in || b.date) < new Date();
                 return (
                     <div key={b.id} className="rounded-lg p-5"

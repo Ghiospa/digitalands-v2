@@ -7,14 +7,16 @@ export default function WaitlistCTA() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!email || !email.includes('@')) return;
+        const trimmed = email.trim();
+        if (!trimmed || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) return;
+
 
         setStatus('loading');
 
         try {
             const { error } = await supabase
                 .from('waitlist')
-                .insert([{ email }]);
+                .insert([{ email: trimmed }]);
 
             if (error) {
                 // If already exists, we can still show success or a specific message
