@@ -4,16 +4,16 @@ export default {
     theme: {
         extend: {
             colors: {
-                bg: '#0A0A0A',
-                surface: '#111111',
-                surface2: '#1A1A1A',
-                border: '#222222',
-                borderLight: '#2E2E2E',
-                accent: '#D4A853',
-                'accent-dim': 'rgba(212,168,83,0.08)',
-                textPrimary: '#F0F0F0',
-                textMuted: '#666666',
-                textSubtle: '#3A3A3A',
+                bg: 'var(--bg)',
+                surface: 'var(--surface)',
+                surface2: 'var(--surface-2)',
+                border: 'var(--border)',
+                borderLight: 'var(--border-light)',
+                accent: 'var(--accent)',
+                'accent-dim': 'var(--accent-dim)',
+                textPrimary: 'var(--text-primary)',
+                textMuted: 'var(--text-muted)',
+                textSubtle: 'var(--text-subtle)',
             },
             fontFamily: {
                 serif: ['"Unbounded"', 'system-ui', 'sans-serif'],

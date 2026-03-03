@@ -133,37 +133,37 @@ export default function Navbar() {
                 {/* Desktop links */}
                 <ul className="hidden md:flex items-center gap-6">
                     <li>
-                        <a href="/#process" className="text-sm text-white hover:text-accent transition-colors duration-200">
+                        <a href="/#process" className="text-sm text-textPrimary hover:text-accent transition-colors duration-200">
                             {t('nav_how')}
                         </a>
                     </li>
                     <li>
-                        <Link to="/strutture" className="text-sm text-white hover:text-accent transition-colors duration-200">
+                        <Link to="/strutture" className="text-sm text-textPrimary hover:text-accent transition-colors duration-200">
                             {t('nav_properties')}
                         </Link>
                     </li>
                     <li>
-                        <a href="/#community" className="text-sm text-white hover:text-accent transition-colors duration-200">
+                        <a href="/#community" className="text-sm text-textPrimary hover:text-accent transition-colors duration-200">
                             {t('nav_community')}
                         </a>
                     </li>
                     <li>
-                        <Link to="/activities" className="text-sm text-white hover:text-accent transition-colors duration-200">
+                        <Link to="/activities" className="text-sm text-textPrimary hover:text-accent transition-colors duration-200">
                             {t('nav_activities')}
                         </Link>
                     </li>
                     <li>
-                        <Link to="/mappa" className="text-sm text-white hover:text-accent transition-colors duration-200">
+                        <Link to="/mappa" className="text-sm text-textPrimary hover:text-accent transition-colors duration-200">
                             {t('nav_map')}
                         </Link>
                     </li>
                     <li>
-                        <Link to="/blog" className="text-sm text-white hover:text-accent transition-colors duration-200">
+                        <Link to="/blog" className="text-sm text-textPrimary hover:text-accent transition-colors duration-200">
                             Blog
                         </Link>
                     </li>
                     <li>
-                        <a href="/#partners" className="text-sm text-white hover:text-accent transition-colors duration-200">
+                        <a href="/#partners" className="text-sm text-textPrimary hover:text-accent transition-colors duration-200">
                             {t('nav_partners')}
                         </a>
                     </li>
@@ -223,16 +223,30 @@ export default function Navbar() {
 
             {/* Mobile menu */}
             {menuOpen && (
-                <div className="md:hidden bg-surface border-t border-border px-6 py-6 flex flex-col gap-5 overflow-y-auto max-h-[calc(100vh-64px)]">
-                    <div className="flex flex-col gap-4">
-                        <a href="/#process" className="text-sm font-medium text-textMuted hover:text-accent transition-colors" onClick={() => setMenuOpen(false)}>{t('nav_how')}</a>
-                        <Link to="/strutture" className="text-sm font-medium text-textMuted hover:text-accent transition-colors" onClick={() => setMenuOpen(false)}>{t('nav_properties')}</Link>
-                        <a href="/#community" className="text-sm font-medium text-textMuted hover:text-accent transition-colors" onClick={() => setMenuOpen(false)}>{t('nav_community')}</a>
-                        <Link to="/activities" className="text-sm font-medium text-textMuted hover:text-accent transition-colors" onClick={() => setMenuOpen(false)}>{t('nav_activities')}</Link>
-                        <Link to="/blog" className="text-sm font-medium text-textMuted hover:text-accent transition-colors" onClick={() => setMenuOpen(false)}>Blog</Link>
-                        <Link to="/mappa" className="text-sm font-medium text-textMuted hover:text-accent transition-colors" onClick={() => setMenuOpen(false)}>{t('nav_map')}</Link>
-                        <a href="/#partners" className="text-sm font-medium text-textMuted hover:text-accent transition-colors" onClick={() => setMenuOpen(false)}>{t('nav_partners')}</a>
-                    </div>
+                <div className="md:hidden bg-surface border-t border-border px-6 py-8 flex flex-col gap-6 overflow-y-auto max-h-[85vh] animate-fade-in shadow-2xl">
+                    <nav className="flex flex-col gap-5">
+                        <a href="/#process" onClick={() => setMenuOpen(false)} className="text-lg font-serif text-textPrimary hover:text-accent transition-colors">
+                            {t('nav_how')}
+                        </a>
+                        <Link to="/strutture" onClick={() => setMenuOpen(false)} className="text-lg font-serif text-textPrimary hover:text-accent transition-colors">
+                            {t('nav_properties')}
+                        </Link>
+                        <a href="/#community" onClick={() => setMenuOpen(false)} className="text-lg font-serif text-textPrimary hover:text-accent transition-colors">
+                            {t('nav_community')}
+                        </a>
+                        <Link to="/activities" onClick={() => setMenuOpen(false)} className="text-lg font-serif text-textPrimary hover:text-accent transition-colors">
+                            {t('nav_activities')}
+                        </Link>
+                        <Link to="/mappa" onClick={() => setMenuOpen(false)} className="text-lg font-serif text-textPrimary hover:text-accent transition-colors">
+                            {t('nav_map')}
+                        </Link>
+                        <Link to="/blog" onClick={() => setMenuOpen(false)} className="text-lg font-serif text-textPrimary hover:text-accent transition-colors">
+                            Blog
+                        </Link>
+                        <a href="/#partners" onClick={() => setMenuOpen(false)} className="text-lg font-serif text-textPrimary hover:text-accent transition-colors">
+                            {t('nav_partners')}
+                        </a>
+                    </nav>
 
                     <div className="pt-5 border-t border-border-light flex flex-col gap-4">
                         {user ? (

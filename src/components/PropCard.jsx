@@ -61,7 +61,7 @@ const PropCard = memo(function PropCard({ prop }) {
 
                 <div className="flex flex-wrap gap-1.5 my-4">
                     {specs.slice(0, 3).map(s => (
-                        <span key={s} className="font-mono text-[10px] px-2 py-0.5 rounded border border-border-light text-white bg-surface-2 opacity-90">
+                        <span key={s} className="font-mono text-[10px] px-2 py-0.5 rounded border border-border-light text-textMuted bg-surface-2">
                             {s}
                         </span>
                     ))}

@@ -230,11 +230,11 @@ export default function Hero() {
                 {VILLA_CARDS.map((card, i) => (
                     <div key={i} className="absolute hero-float-svg"
                         style={{ top: card.top, left: card.left, right: card.right, animationDelay: card.delay, animationDuration: card.dur, width: '152px' }}>
-                        <div style={{ borderRadius: '8px', overflow: 'hidden', border: '1px solid rgba(212,168,83,0.2)', background: 'rgba(10,10,10,0.55)', backdropFilter: 'blur(6px)', boxShadow: '0 8px 28px rgba(0,0,0,0.45)' }}>
+                        <div style={{ borderRadius: '8px', overflow: 'hidden', border: '1px solid var(--border-light)', background: 'var(--surface)', backdropFilter: 'blur(6px)', boxShadow: '0 8px 28px rgba(0,0,0,0.15)' }}>
                             <img src={card.img} alt={card.label} style={{ width: '100%', height: '88px', objectFit: 'cover', display: 'block' }} />
                             <div style={{ padding: '8px 10px' }}>
-                                <div style={{ fontSize: '10px', fontFamily: 'monospace', color: 'rgba(212,168,83,0.9)', letterSpacing: '0.04em', marginBottom: '1px' }}>{card.label}</div>
-                                <div style={{ fontSize: '11px', color: 'rgba(240,240,240,0.65)', fontFamily: 'monospace' }}>{card.price}</div>
+                                <div style={{ fontSize: '10px', fontFamily: 'monospace', color: 'var(--accent)', letterSpacing: '0.04em', marginBottom: '1px' }}>{card.label}</div>
+                                <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'monospace' }}>{card.price}</div>
                             </div>
                         </div>
                     </div>
@@ -336,9 +336,9 @@ export default function Hero() {
                             display: 'inline-flex', alignItems: 'center', gap: '5px',
                             fontSize: '10px', fontFamily: 'monospace', letterSpacing: '0.04em',
                             padding: '4px 10px', borderRadius: '20px',
-                            background: 'rgba(212,168,83,0.07)',
-                            border: '1px solid rgba(212,168,83,0.2)',
-                            color: 'rgba(240,240,240,0.6)',
+                            background: 'var(--accent-dim)',
+                            border: '1px solid var(--border)',
+                            color: 'var(--text-muted)',
                             whiteSpace: 'nowrap'
                         }}>
                             {b.icon} {b.label}

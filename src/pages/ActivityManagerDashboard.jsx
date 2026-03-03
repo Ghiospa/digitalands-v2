@@ -172,7 +172,7 @@ const ActivityForm = memo(function ActivityForm({ user, onSaved, editItem }) {
                 </div>
                 <div style={{ display: 'flex', gap: '8px' }}>
                     <input type="time" value={newSlot} onChange={e => setNewSlot(e.target.value)}
-                        style={{ ...inputStyle, width: 'auto', colorScheme: 'dark' }} />
+                        style={{ ...inputStyle, width: 'auto' }} />
                     <button type="button" className="btn-ghost" style={{ padding: '8px 16px', fontSize: '0.82rem' }} onClick={addSlot}>
                         + Aggiungi
                     </button>
@@ -269,7 +269,7 @@ const MonitorTab = memo(function MonitorTab({ activities, bookings }) {
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
                 <label style={{ fontSize: '12px', fontFamily: 'monospace', color: 'var(--text-muted)' }}>GIORNO:</label>
                 <input type="date" value={selectedDate} onChange={e => setSelectedDate(e.target.value)}
-                    style={{ background: 'var(--surface-2)', border: '1px solid var(--border-light)', color: 'var(--text-primary)', padding: '6px 12px', borderRadius: '6px', outline: 'none', colorScheme: 'dark' }} />
+                    style={{ background: 'var(--surface-2)', border: '1px solid var(--border-light)', color: 'var(--text-primary)', padding: '6px 12px', borderRadius: '6px', outline: 'none' }} />
             </div>
 
             {grouped.length === 0 ? (
@@ -279,7 +279,7 @@ const MonitorTab = memo(function MonitorTab({ activities, bookings }) {
             ) : (
                 grouped.map(act => (
                     <div key={act.id} style={{ background: 'var(--surface)', border: '1px solid var(--border-light)', borderRadius: '12px', overflow: 'hidden' }}>
-                        <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '12px', background: 'rgba(255,255,255,0.02)' }}>
+                        <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '12px', background: 'var(--surface-2)', opacity: 0.5 }}>
                             <span style={{ fontSize: '1.2rem' }}>{act.emoji}</span>
                             <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--text-primary)' }}>{act.name}</div>
                         </div>

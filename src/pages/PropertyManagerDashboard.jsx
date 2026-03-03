@@ -99,7 +99,7 @@ const PropertyForm = memo(function PropertyForm({ user, onSaved, editItem }) {
 
     const inputStyle = {
         width: '100%', padding: '12px 16px',
-        background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border)',
+        background: 'var(--surface-2)', border: '1px solid var(--border)',
         borderRadius: '8px', color: 'var(--text-primary)',
         fontSize: '0.92rem', fontFamily: 'inherit', outline: 'none',
         transition: 'border-color 0.2s, background 0.2s',
@@ -114,7 +114,8 @@ const PropertyForm = memo(function PropertyForm({ user, onSaved, editItem }) {
         <div style={{ position: 'relative' }}>
             {saved && (
                 <div style={{
-                    position: 'absolute', inset: -20, background: 'rgba(10,10,10,0.8)',
+                    position: 'absolute', inset: -20, background: 'var(--bg)',
+                    opacity: 0.9,
                     backdropFilter: 'blur(8px)', zIndex: 10, borderRadius: '12px',
                     display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
                     animation: 'reveal 0.4s ease forwards'
