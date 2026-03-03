@@ -1,6 +1,16 @@
 import { Link } from 'react-router-dom';
+import { memo } from 'react';
 
-export default function PropCard({ prop }) {
+const optimizeUnsplash = (url) => {
+    if (!url || !url.includes('unsplash.com')) return url;
+    if (url.includes('?')) {
+        const base = url.split('?')[0];
+        return `${base}?w=800&q=75&auto=format`;
+    }
+    return `${url}?w=800&q=75&auto=format`;
+};
+
+const PropCard = memo(function PropCard({ prop }) {
     // Standardize data fields
     const name = prop.name;
     const img = prop.img || prop.image;
@@ -18,7 +28,7 @@ export default function PropCard({ prop }) {
             {/* Image */}
             <div style={{ height: '220px', position: 'relative', overflow: 'hidden' }}>
                 <img
-                    src={img}
+                    src={optimizeUnsplash(img)}
                     alt={name}
                     style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
                     loading="lazy"
@@ -73,4 +83,6 @@ export default function PropCard({ prop }) {
             </div>
         </div>
     );
-}
+});
+
+export default PropCard;

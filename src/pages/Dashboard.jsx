@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, memo, useMemo } from 'react';
 import { Navigate, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useBookings } from '../context/BookingContext';
+import { useI18n } from '../context/I18nContext';
 import DigitalCard from '../components/DigitalCard';
 
-function StatusBadge({ status }) {
+const StatusBadge = memo(function StatusBadge({ status }) {
     const map = {
         confermata: { label: 'Confermata', color: '#4ade80', bg: 'rgba(74,222,128,0.08)', border: 'rgba(74,222,128,0.2)' },
         cancellata: { label: 'Cancellata', color: '#f87171', bg: 'rgba(248,113,113,0.08)', border: 'rgba(248,113,113,0.2)' },
@@ -17,18 +18,18 @@ function StatusBadge({ status }) {
             {s.label}
         </span>
     );
-}
+});
 
-function BookingCard({ booking, onCancel }) {
-    const checkIn = new Date(booking.checkIn);
-    const checkOut = new Date(booking.checkOut);
+const BookingCard = memo(function BookingCard({ booking, onCancel }) {
+    const checkIn = new Date(booking.checkIn || booking.check_in);
+    const checkOut = new Date(booking.checkOut || booking.check_out);
     const isUpcoming = checkIn > new Date();
 
     return (
         <div className="rounded-lg p-5" style={{ background: 'var(--surface)', border: '1px solid var(--border-light)' }}>
             <div className="flex items-start justify-between gap-4 mb-4">
                 <div>
-                    <div className="font-medium text-textPrimary mb-0.5">{booking.propertyName}</div>
+                    <div className="font-medium text-textPrimary mb-0.5">{booking.propertyName || booking.property_name}</div>
                     <div className="text-xs text-textMuted font-mono">{booking.location}</div>
                 </div>
                 <StatusBadge status={booking.status} />
@@ -45,12 +46,12 @@ function BookingCard({ booking, onCancel }) {
                 </div>
                 <div>
                     <div className="text-[10px] font-mono tracking-widest uppercase text-textMuted mb-1">Totale</div>
-                    <div className="text-sm" style={{ color: 'var(--accent)' }}>€{booking.totalPrice}</div>
+                    <div className="text-sm" style={{ color: 'var(--accent)' }}>€{booking.totalPrice || booking.total_price}</div>
                 </div>
             </div>
 
             <div className="flex items-center justify-between pt-3 border-t" style={{ borderColor: 'var(--border)' }}>
-                <Link to={`/property/${booking.propertyId}`}
+                <Link to={`/property/${booking.propertyId || booking.property_id}`}
                     className="text-xs text-textMuted hover:text-accent transition-colors font-mono">
                     Rivedi struttura →
                 </Link>
@@ -63,9 +64,9 @@ function BookingCard({ booking, onCancel }) {
             </div>
         </div>
     );
-}
+});
 
-function ProfileSection({ user, onUpdate }) {
+const ProfileSection = memo(function ProfileSection({ user, onUpdate }) {
     const { t } = useI18n();
     const [form, setForm] = useState({
         name: user.name,
@@ -147,7 +148,7 @@ function ProfileSection({ user, onUpdate }) {
             </button>
         </form>
     );
-}
+});
 
 const CAT_COLORS = {
     'Surf': '#60a5fa',
@@ -158,7 +159,7 @@ const CAT_COLORS = {
     'Food & Wine': '#D4A853',
 };
 
-function ActivityBookingsTab({ bookings, onCancel }) {
+const ActivityBookingsTab = memo(function ActivityBookingsTab({ bookings, onCancel }) {
     const navigate = useNavigate();
     const activityBookings = bookings.filter(b => b.activity_id);
 
@@ -237,7 +238,7 @@ function ActivityBookingsTab({ bookings, onCancel }) {
             })}
         </div>
     );
-}
+});
 
 export default function Dashboard() {
     const { user, logout, updateProfile, loading } = useAuth();
@@ -253,11 +254,17 @@ export default function Dashboard() {
     if (!user) return <Navigate to="/auth?redirect=/dashboard" replace />;
 
     const bookings = getUserBookings();
-    const propertyBookings = bookings.filter(b => b.property_id);
-    const activityBookings = bookings.filter(b => b.activity_id);
 
-    const upcoming = propertyBookings.filter(b => b.status !== 'cancellata' && new Date(b.check_in) > new Date());
-    const past = propertyBookings.filter(b => b.status === 'cancellata' || new Date(b.check_out) <= new Date());
+    const { propertyBookings, activityBookings, upcoming, past } = useMemo(() => {
+        const pb = bookings.filter(b => b.property_id);
+        const ab = bookings.filter(b => b.activity_id);
+        return {
+            propertyBookings: pb,
+            activityBookings: ab,
+            upcoming: pb.filter(b => b.status !== 'cancellata' && new Date(b.check_in) > new Date()),
+            past: pb.filter(b => b.status === 'cancellata' || new Date(b.check_out) <= new Date())
+        };
+    }, [bookings]);
 
     const tabs = [
         { id: 'bookings', label: 'Prenotazioni' },

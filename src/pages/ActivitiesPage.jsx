@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, memo, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
@@ -12,7 +12,7 @@ const ACTIVITIES = [
         price: 65,
         duration: '2h',
         emoji: '🏄',
-        image: 'https://images.unsplash.com/photo-1502680390469-be75c86b636f?w=600&q=80',
+        image: 'https://images.unsplash.com/photo-1502680390469-be75c86b636f?w=800&q=75&auto=format',
     },
     {
         id: 'kite-surf',
@@ -22,7 +22,7 @@ const ACTIVITIES = [
         price: 90,
         duration: '3h',
         emoji: '🪁',
-        image: 'https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=600&q=80',
+        image: 'https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&q=75&auto=format',
     },
     {
         id: 'yoga-cliff',
@@ -32,7 +32,7 @@ const ACTIVITIES = [
         price: 35,
         duration: '1h 30min',
         emoji: '🧘',
-        image: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&q=80',
+        image: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=75&auto=format',
     },
     {
         id: 'etna-trekking',
@@ -42,7 +42,7 @@ const ACTIVITIES = [
         price: 55,
         duration: '6h',
         emoji: '🌋',
-        image: 'https://images.unsplash.com/photo-1516912481808-3406841bd33c?w=600&q=80',
+        image: 'https://images.unsplash.com/photo-1516912481808-3406841bd33c?w=800&q=75&auto=format',
     },
     {
         id: 'snorkeling-zingaro',
@@ -52,7 +52,7 @@ const ACTIVITIES = [
         price: 45,
         duration: '3h',
         emoji: '🤿',
-        image: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=600&q=80',
+        image: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800&q=75&auto=format',
     },
     {
         id: 'street-food-palermo',
@@ -62,7 +62,7 @@ const ACTIVITIES = [
         price: 40,
         duration: '2h 30min',
         emoji: '🍋',
-        image: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=600&q=80',
+        image: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800&q=75&auto=format',
     },
     {
         id: 'wine-etna',
@@ -72,7 +72,7 @@ const ACTIVITIES = [
         price: 50,
         duration: '2h',
         emoji: '🍷',
-        image: 'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=600&q=80',
+        image: 'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=800&q=75&auto=format',
     },
     {
         id: 'kayak-isola-bella',
@@ -82,7 +82,7 @@ const ACTIVITIES = [
         price: 55,
         duration: '4h',
         emoji: '🛶',
-        image: 'https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?w=600&q=80',
+        image: 'https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?w=800&q=75&auto=format',
     },
     {
         id: 'yoga-tramonto',
@@ -92,7 +92,7 @@ const ACTIVITIES = [
         price: 30,
         duration: '1h 30min',
         emoji: '🌅',
-        image: 'https://images.unsplash.com/photo-1599901860904-17e6ed7083a0?w=600&q=80',
+        image: 'https://images.unsplash.com/photo-1599901860904-17e6ed7083a0?w=800&q=75&auto=format',
     },
     {
         id: 'windsurf-avanzato',
@@ -102,7 +102,7 @@ const ACTIVITIES = [
         price: 80,
         duration: '3h',
         emoji: '🌊',
-        image: 'https://images.unsplash.com/photo-1489107879168-8e3f4c4a4c2a?w=600&q=80',
+        image: 'https://images.unsplash.com/photo-1489107879168-8e3f4c4a4c2a?w=800&q=75&auto=format',
     },
 ];
 
@@ -120,7 +120,7 @@ const CAT_COLORS = {
 import { useBookings } from '../context/BookingContext';
 
 /* ─── Badge ─── */
-function CategoryBadge({ cat }) {
+const CategoryBadge = memo(function CategoryBadge({ cat }) {
     const c = CAT_COLORS[cat] || { color: 'var(--accent)', bg: 'var(--accent-dim)' };
     return (
         <span style={{
@@ -131,20 +131,21 @@ function CategoryBadge({ cat }) {
             border: `1px solid ${c.color}33`,
         }}>{cat}</span>
     );
-}
+});
 
 /* ─── Activity Card ─── */
-function ActivityCard({ activity, onBook }) {
+const ActivityCard = memo(function ActivityCard({ activity, onBook }) {
     return (
         <div className="card-hover" style={{ background: 'var(--surface)', overflow: 'hidden' }}>
             {/* Image */}
             <div style={{ position: 'relative', height: '180px', overflow: 'hidden' }}>
                 <img
-                    src={activity.image}
+                    src={activity.image + (activity.image.includes('?') ? '&' : '?') + 'w=800&q=75&auto=format'}
                     alt={activity.name}
                     style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.4s ease' }}
                     onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.05)'}
                     onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+                    loading="lazy"
                 />
                 <div style={{
                     position: 'absolute', inset: 0,
@@ -187,10 +188,10 @@ function ActivityCard({ activity, onBook }) {
             </div>
         </div>
     );
-}
+});
 
 /* ─── Booking Modal ─── */
-function BookingModal({ activity, onClose, onConfirm }) {
+const BookingModal = memo(function BookingModal({ activity, onClose, onConfirm }) {
     const today = new Date().toISOString().split('T')[0];
     const [date, setDate] = useState('');
     const [timeSlot, setTimeSlot] = useState('');
@@ -346,7 +347,7 @@ function BookingModal({ activity, onClose, onConfirm }) {
             </div>
         </div>
     );
-}
+});
 
 /* ─── Main Page ─── */
 export default function ActivitiesPage() {
@@ -355,9 +356,9 @@ export default function ActivitiesPage() {
     const [activeCategory, setActiveCategory] = useState('Tutto');
     const [bookingActivity, setBookingActivity] = useState(null);
 
-    const filtered = activeCategory === 'Tutto'
+    const filtered = useMemo(() => activeCategory === 'Tutto'
         ? ACTIVITIES
-        : ACTIVITIES.filter(a => a.category === activeCategory);
+        : ACTIVITIES.filter(a => a.category === activeCategory), [activeCategory]);
 
     function handleBook(activity) {
         if (!user) {

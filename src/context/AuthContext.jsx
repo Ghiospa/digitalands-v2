@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import { supabase } from '../lib/supabase';
 
 const AuthContext = createContext(null);
@@ -34,7 +34,7 @@ export function AuthProvider({ children }) {
     async function fetchProfile(authUser) {
         const { data, error } = await supabase
             .from('profiles')
-            .select('*')
+            .select('id, name, role, employment_type, profession, vat_number, company_name, company_role, stats_metadata')
             .eq('id', authUser.id)
             .single();
 
@@ -105,8 +105,17 @@ export function AuthProvider({ children }) {
         return { error };
     }
 
+    const value = useMemo(() => ({
+        user,
+        register,
+        login,
+        logout,
+        updateProfile,
+        loading
+    }), [user, loading]);
+
     return (
-        <AuthContext.Provider value={{ user, register, login, logout, updateProfile, loading }}>
+        <AuthContext.Provider value={value}>
             {children}
         </AuthContext.Provider>
     );

@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import { useAuth } from './AuthContext';
 import { supabase } from '../lib/supabase';
 
@@ -21,7 +21,7 @@ export function BookingProvider({ children }) {
         setLoading(true);
         const { data, error } = await supabase
             .from('bookings')
-            .select('*')
+            .select('id, user_id, property_id, activity_id, property_name, activity_name, check_in, check_out, total_price, status, created_at')
             .eq('user_id', user.id)
             .order('created_at', { ascending: false });
 
@@ -79,8 +79,16 @@ export function BookingProvider({ children }) {
         return bookings;
     }
 
+    const value = useMemo(() => ({
+        bookings,
+        addBooking,
+        cancelBooking,
+        getUserBookings,
+        loading
+    }), [bookings, loading]);
+
     return (
-        <BookingContext.Provider value={{ bookings, addBooking, cancelBooking, getUserBookings, loading }}>
+        <BookingContext.Provider value={value}>
             {children}
         </BookingContext.Provider>
     );

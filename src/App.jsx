@@ -1,9 +1,10 @@
-import { useEffect } from 'react';
+import { useEffect, lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 
 import { AuthProvider } from './context/AuthContext';
 import { BookingProvider } from './context/BookingContext';
 import { I18nProvider } from './context/I18nContext';
+import { ThemeProvider } from './context/ThemeContext';
 
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
@@ -17,16 +18,17 @@ import WaitlistCTA from './components/WaitlistCTA';
 import Footer from './components/Footer';
 import OnboardingOverlay from './components/OnboardingOverlay';
 
-import AuthPage from './pages/AuthPage';
-import PropertyDetail from './pages/PropertyDetail';
-import ActivitiesPage from './pages/ActivitiesPage';
-import Dashboard from './pages/Dashboard';
-import MapPage from './pages/MapPage';
-import ActivityManagerDashboard from './pages/ActivityManagerDashboard';
-import PropertyManagerDashboard from './pages/PropertyManagerDashboard';
-import PropertiesPage from './pages/PropertiesPage';
-import BlogPage from './pages/BlogPage';
-import BlogPostDetail from './pages/BlogPostDetail';
+const AuthPage = lazy(() => import('./pages/AuthPage'));
+const PropertyDetail = lazy(() => import('./pages/PropertyDetail'));
+const ActivitiesPage = lazy(() => import('./pages/ActivitiesPage'));
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const MapPage = lazy(() => import('./pages/MapPage'));
+const ActivityManagerDashboard = lazy(() => import('./pages/ActivityManagerDashboard'));
+const PropertyManagerDashboard = lazy(() => import('./pages/PropertyManagerDashboard'));
+const PropertiesPage = lazy(() => import('./pages/PropertiesPage'));
+const BlogPage = lazy(() => import('./pages/BlogPage'));
+const BlogPostDetail = lazy(() => import('./pages/BlogPostDetail'));
+
 import { injectJSONLD } from './utils/seo';
 
 import './index.css';
@@ -107,32 +109,40 @@ export default function App() {
     return (
         <ErrorBoundary>
             <BrowserRouter>
-                <I18nProvider>
-                    <AuthProvider>
-                        <BookingProvider>
-                            <div style={{ background: 'var(--bg)', minHeight: '100vh' }}>
-                                <Navbar />
-                                <OnboardingOverlay />
-                                <Routes>
-                                    <Route path="/" element={<LandingPage />} />
-                                    <Route path="/auth" element={<AuthPage />} />
-                                    <Route path="/property/:id" element={<PropertyDetail />} />
-                                    <Route path="/dashboard" element={<Dashboard />} />
-                                    <Route path="/activities" element={<ActivitiesPage />} />
-                                    <Route path="/mappa" element={<MapPage />} />
-                                    <Route path="/manager/activities" element={<ActivityManagerDashboard />} />
-                                    <Route path="/manager/properties" element={<PropertyManagerDashboard />} />
-                                    <Route path="/strutture" element={<PropertiesPage />} />
-                                    <Route path="/properties" element={<PropertiesPage />} />
-                                    <Route path="/blog" element={<BlogPage />} />
-                                    <Route path="/blog/:slug" element={<BlogPostDetail />} />
-                                    {/* Fallback */}
-                                    <Route path="*" element={<LandingPage />} />
-                                </Routes>
-                            </div>
-                        </BookingProvider>
-                    </AuthProvider>
-                </I18nProvider>
+                <ThemeProvider>
+                    <I18nProvider>
+                        <AuthProvider>
+                            <BookingProvider>
+                                <div style={{ background: 'var(--bg)', minHeight: '100vh' }}>
+                                    <Navbar />
+                                    <OnboardingOverlay />
+                                    <Suspense fallback={
+                                        <div className="min-h-[60vh] flex items-center justify-center">
+                                            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-accent"></div>
+                                        </div>
+                                    }>
+                                        <Routes>
+                                            <Route path="/" element={<LandingPage />} />
+                                            <Route path="/auth" element={<AuthPage />} />
+                                            <Route path="/property/:id" element={<PropertyDetail />} />
+                                            <Route path="/dashboard" element={<Dashboard />} />
+                                            <Route path="/activities" element={<ActivitiesPage />} />
+                                            <Route path="/mappa" element={<MapPage />} />
+                                            <Route path="/manager/activities" element={<ActivityManagerDashboard />} />
+                                            <Route path="/manager/properties" element={<PropertyManagerDashboard />} />
+                                            <Route path="/strutture" element={<PropertiesPage />} />
+                                            <Route path="/properties" element={<PropertiesPage />} />
+                                            <Route path="/blog" element={<BlogPage />} />
+                                            <Route path="/blog/:slug" element={<BlogPostDetail />} />
+                                            {/* Fallback */}
+                                            <Route path="*" element={<LandingPage />} />
+                                        </Routes>
+                                    </Suspense>
+                                </div>
+                            </BookingProvider>
+                        </AuthProvider>
+                    </I18nProvider>
+                </ThemeProvider>
             </BrowserRouter>
         </ErrorBoundary>
     );

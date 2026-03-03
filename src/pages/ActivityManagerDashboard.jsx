@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, memo, useMemo, useCallback } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useI18n } from '../context/I18nContext';
@@ -13,13 +13,13 @@ const RAGUSA_COMUNI = [
 const CATEGORIES = ['Surf', 'Kite Surf', 'Yoga', 'Escursioni', 'Snorkeling', 'Food & Wine', 'Altro'];
 
 const CAT_IMAGES = {
-    'Surf': 'https://images.unsplash.com/photo-1502680390469-be75c86b636f?w=600&q=80',
-    'Kite Surf': 'https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=600&q=80',
-    'Yoga': 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&q=80',
-    'Escursioni': 'https://images.unsplash.com/photo-1516912481808-3406841bd33c?w=600&q=80',
-    'Snorkeling': 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=600&q=80',
-    'Food & Wine': 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=600&q=80',
-    'Altro': 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&q=80',
+    'Surf': 'https://images.unsplash.com/photo-1502680390469-be75c86b636f?w=800&q=75&auto=format',
+    'Kite Surf': 'https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&q=75&auto=format',
+    'Yoga': 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=75&auto=format',
+    'Escursioni': 'https://images.unsplash.com/photo-1516912481808-3406841bd33c?w=800&q=75&auto=format',
+    'Snorkeling': 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800&q=75&auto=format',
+    'Food & Wine': 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800&q=75&auto=format',
+    'Altro': 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&q=75&auto=format',
 };
 
 const DEFAULT_SLOTS = ['09:00', '11:00', '14:00', '16:00'];
@@ -29,7 +29,7 @@ import { supabase } from '../lib/supabase';
 async function getMyActivities(userId) {
     const { data, error } = await supabase
         .from('activities')
-        .select('*')
+        .select('id, owner_id, title, category, price, description, image_url, published, created_at, slots')
         .eq('owner_id', userId)
         .order('created_at', { ascending: false });
 
@@ -49,7 +49,7 @@ async function deleteActivity(id) {
 }
 
 /* ─── New/Edit Activity Form ─── */
-function ActivityForm({ user, onSaved, editItem }) {
+const ActivityForm = memo(function ActivityForm({ user, onSaved, editItem }) {
     const { t } = useI18n();
     const empty = {
         name: '', category: 'Surf', description: '', price: '',
@@ -190,10 +190,10 @@ function ActivityForm({ user, onSaved, editItem }) {
             </div>
         </form>
     );
-}
+});
 
 /* ─── Activity Card in Manager list ─── */
-function ManagerActivityCard({ activity, onDelete, onEdit }) {
+const ManagerActivityCard = memo(function ManagerActivityCard({ activity, onDelete, onEdit }) {
     const { t } = useI18n();
     return (
         <div style={{ background: 'var(--surface)', border: '1px solid var(--border-light)', borderRadius: '10px', padding: '18px', display: 'flex', alignItems: 'center', gap: '16px' }}>
@@ -220,7 +220,7 @@ function ManagerActivityCard({ activity, onDelete, onEdit }) {
             </div>
         </div>
     );
-}
+});
 
 /* ─── Main ─── */
 function toggleAttendance(bookingId) {
@@ -234,7 +234,7 @@ function getAttendance() {
 }
 
 /* ─── Monitor Tab Component ─── */
-function MonitorTab({ activities, bookings }) {
+const MonitorTab = memo(function MonitorTab({ activities, bookings }) {
     const [attendance, setAttendance] = useState(getAttendance());
     const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
 
@@ -321,7 +321,7 @@ function MonitorTab({ activities, bookings }) {
             )}
         </div>
     );
-}
+});
 
 /* ─── Main ─── */
 export default function ActivityManagerDashboard() {
@@ -357,20 +357,26 @@ export default function ActivityManagerDashboard() {
         setEditItem(null);
     }
 
-    async function handleDelete(id) {
+    const handleDelete = useCallback(async (id) => {
         if (!window.confirm('Sei sicuro di voler eliminare questa attività?')) return;
         await deleteActivity(id);
         refreshList();
-    }
+    }, [user.id]);
 
-    function handleEdit(activity) {
+    const handleEdit = useCallback((activity) => {
         setEditItem({
             ...activity,
             name: activity.title,
             image: activity.image_url
         });
         setActiveTab('new');
-    }
+    }, []);
+
+    const stats = useMemo(() => ({
+        published: activities.filter(a => a.published).length,
+        bookingsTotal: bookings.length,
+        bookingsConfirmed: bookings.filter(b => b.status === 'confermata').length
+    }), [activities, bookings]);
 
     const tabs = [
         { id: 'list', label: t('mgr_my_activities') },
@@ -415,9 +421,9 @@ export default function ActivityManagerDashboard() {
                 {/* Stats */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '32px' }}>
                     {[
-                        { label: 'Attività pubblicate', value: activities.filter(a => a.published).length },
-                        { label: 'Prenotazioni totali', value: bookings.length },
-                        { label: 'Prenotazioni confermate', value: bookings.filter(b => b.status === 'confermata').length },
+                        { label: 'Attività pubblicate', value: stats.published },
+                        { label: 'Prenotazioni totali', value: stats.bookingsTotal },
+                        { label: 'Prenotazioni confermate', value: stats.bookingsConfirmed },
                     ].map(s => (
                         <div key={s.label} style={{ background: 'var(--surface)', border: '1px solid var(--border-light)', borderRadius: '10px', padding: '18px' }}>
                             <div style={{ fontFamily: "'Unbounded', sans-serif", fontSize: '1.8rem', fontWeight: 700, color: 'var(--accent)' }}>{s.value}</div>

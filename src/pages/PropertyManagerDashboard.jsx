@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, memo, useMemo, useCallback } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useI18n } from '../context/I18nContext';
@@ -21,7 +21,7 @@ import { supabase } from '../lib/supabase';
 async function getMyProperties(userId) {
     const { data, error } = await supabase
         .from('properties')
-        .select('*')
+        .select('id, owner_id, name, location, price_per_night, image_url, description, specs, published, created_at, comune')
         .eq('owner_id', userId)
         .order('created_at', { ascending: false });
 
@@ -41,7 +41,7 @@ async function deleteProperty(id) {
 }
 
 /* ─── Form ─── */
-function PropertyForm({ user, onSaved, editItem }) {
+const PropertyForm = memo(function PropertyForm({ user, onSaved, editItem }) {
     const { t } = useI18n();
     const empty = {
         name: '', location: 'Ragusa', description: '',
@@ -202,9 +202,9 @@ function PropertyForm({ user, onSaved, editItem }) {
             </form>
         </div>
     );
-}
+});
 
-function ManagerPropCard({ property, onDelete, onEdit }) {
+const ManagerPropCard = memo(function ManagerPropCard({ property, onDelete, onEdit }) {
     const { t } = useI18n();
     return (
         <div style={{ background: 'var(--surface)', border: '1px solid var(--border-light)', borderRadius: '10px', padding: '18px', display: 'flex', alignItems: 'center', gap: '16px' }}>
@@ -229,7 +229,7 @@ function ManagerPropCard({ property, onDelete, onEdit }) {
             </div>
         </div>
     );
-}
+});
 
 export default function PropertyManagerDashboard() {
     const { user, logout, loading } = useAuth();
@@ -266,13 +266,13 @@ export default function PropertyManagerDashboard() {
         setEditItem(null);
     }
 
-    async function handleDelete(id) {
+    const handleDelete = useCallback(async (id) => {
         if (!window.confirm('Sei sicuro di voler eliminare questa proprietà?')) return;
         await deleteProperty(id);
         refreshList();
-    }
+    }, [user.id]);
 
-    function handleEdit(prop) {
+    const handleEdit = useCallback((prop) => {
         // Map DB fields back to form names
         setEditItem({
             ...prop,
@@ -281,7 +281,13 @@ export default function PropertyManagerDashboard() {
             pricePerNight: prop.price_per_night
         });
         setActiveTab('new');
-    }
+    }, []);
+
+    const stats = useMemo(() => ({
+        published: properties.filter(p => p.published).length,
+        bookingsTotal: bookings.length,
+        bookingsConfirmed: bookings.filter(b => b.status === 'confermata').length
+    }), [properties, bookings]);
 
     const tabs = [
         { id: 'list', label: t('mgr_my_properties') },
@@ -325,9 +331,9 @@ export default function PropertyManagerDashboard() {
                 {/* Stats */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '32px' }}>
                     {[
-                        { label: 'Case pubblicate', value: properties.filter(p => p.published).length },
-                        { label: 'Prenotazioni totali', value: bookings.length },
-                        { label: 'Confermate', value: bookings.filter(b => b.status === 'confermata').length },
+                        { label: 'Case pubblicate', value: stats.published },
+                        { label: 'Prenotazioni totali', value: stats.bookingsTotal },
+                        { label: 'Confermate', value: stats.bookingsConfirmed },
                     ].map(s => (
                         <div key={s.label} style={{ background: 'var(--surface)', border: '1px solid var(--border-light)', borderRadius: '10px', padding: '18px' }}>
                             <div style={{ fontFamily: "'Unbounded', sans-serif", fontSize: '1.8rem', fontWeight: 700, color: 'var(--accent)' }}>{s.value}</div>

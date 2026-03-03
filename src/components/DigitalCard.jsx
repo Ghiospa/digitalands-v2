@@ -1,10 +1,9 @@
-/* Digital Nomad ID Card */
-import { useRef, useState } from 'react';
+import { useRef, useState, memo } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { QRCodeSVG } from 'qrcode.react';
 import { toPng } from 'html-to-image';
 
-function SicilyCardBg() {
+const SicilyCardBg = memo(function SicilyCardBg() {
     return (
         <svg viewBox="0 0 280 160" fill="none" xmlns="http://www.w3.org/2000/svg"
             style={{ position: 'absolute', right: '-10px', bottom: '-10px', opacity: 0.07, width: '200px' }}>
@@ -15,7 +14,7 @@ function SicilyCardBg() {
             <path d="M 60 50 L 66 36 L 72 50 Z" fill="#D4A853" opacity="0.6" />
         </svg>
     );
-}
+});
 
 const ROLE_LABELS = {
     guest: 'Nomade Digitale',
@@ -29,7 +28,7 @@ const ROLE_COLORS = {
     property_manager: '#60a5fa',
 };
 
-export default function DigitalCard() {
+const DigitalCard = memo(function DigitalCard() {
     const { user } = useAuth();
     const cardRef = useRef(null);
     const [downloading, setDownloading] = useState(false);
@@ -249,4 +248,6 @@ export default function DigitalCard() {
             </p>
         </div>
     );
-}
+});
+
+export default DigitalCard;

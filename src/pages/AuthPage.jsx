@@ -241,6 +241,7 @@ export default function AuthPage() {
     const [searchParams] = useSearchParams();
     const { t } = useI18n();
     const redirect = searchParams.get('redirect') || '/dashboard';
+    const initTab = searchParams.get('tab');
     const { user, loading } = useAuth();
 
     // Auto-redirect if already logged in

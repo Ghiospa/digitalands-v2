@@ -1,10 +1,11 @@
 import { SEED_PROPERTIES } from '../data/seedProperties';
 import { Link } from 'react-router-dom';
 import PropCard from './PropCard';
+import { memo } from 'react';
 
 const PROPERTIES = SEED_PROPERTIES.slice(0, 3);
 
-export default function Properties() {
+const Properties = memo(function Properties() {
     return (
         <section className="py-16 md:py-28 px-6 md:px-10" id="properties">
             <div className="max-w-content mx-auto">
@@ -33,4 +34,6 @@ export default function Properties() {
             </div>
         </section>
     );
-}
+});
+
+export default Properties;
