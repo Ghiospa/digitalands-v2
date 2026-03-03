@@ -241,9 +241,18 @@ export default function AuthPage() {
     const [searchParams] = useSearchParams();
     const { t } = useI18n();
     const redirect = searchParams.get('redirect') || '/dashboard';
+    const { user, loading } = useAuth();
 
-    const initTab = searchParams.get('tab');
-    useState(() => { if (initTab === 'register') setTab('register'); }, []);
+    // Auto-redirect if already logged in
+    useEffect(() => {
+        if (!loading && user) {
+            navigate(redirect, { replace: true });
+        }
+    }, [user, loading, navigate, redirect]);
+
+    useEffect(() => {
+        if (initTab === 'register') setTab('register');
+    }, [initTab]);
 
     function onSuccess() {
         navigate(redirect);
