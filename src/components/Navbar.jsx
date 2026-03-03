@@ -126,7 +126,7 @@ export default function Navbar() {
         <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? 'navbar-scroll' : 'bg-transparent'}`}>
             <div className="max-w-content mx-auto px-6 md:px-10 h-16 flex items-center justify-between">
                 {/* Wordmark */}
-                <Link to="/" className="flex items-center gap-1.5 font-sans font-medium text-textPrimary text-lg tracking-tight">
+                <Link to="/" className={`flex items-center gap-1.5 font-sans font-medium text-lg tracking-tight transition-colors duration-300 ${scrolled ? 'text-textPrimary' : 'text-white'}`}>
                     <span className="text-accent">·</span>Digitalands
                 </Link>
 
@@ -143,11 +143,11 @@ export default function Navbar() {
                     ].map(link => (
                         <li key={link.label}>
                             {link.isHash ? (
-                                <a href={link.to} className="text-sm text-textPrimary hover:text-accent transition-colors duration-200">
+                                <a href={link.to} className={`text-sm transition-colors duration-200 ${scrolled ? 'text-textPrimary hover:text-accent' : 'text-white/90 hover:text-white'}`}>
                                     {link.label}
                                 </a>
                             ) : (
-                                <Link to={link.to} className="text-sm text-textPrimary hover:text-accent transition-colors duration-200">
+                                <Link to={link.to} className={`text-sm transition-colors duration-200 ${scrolled ? 'text-textPrimary hover:text-accent' : 'text-white/90 hover:text-white'}`}>
                                     {link.label}
                                 </Link>
                             )}
@@ -163,7 +163,7 @@ export default function Navbar() {
                     {user ? (
                         <div className="flex items-center gap-3">
                             <div className="flex flex-col items-end gap-0">
-                                <Link to="/dashboard" className="text-[12px] font-medium text-textMuted hover:text-textPrimary transition-colors">
+                                <Link to="/dashboard" className={`text-[12px] font-medium transition-colors ${scrolled ? 'text-textMuted hover:text-textPrimary' : 'text-white/70 hover:text-white'}`}>
                                     {t('nav_dashboard')}
                                 </Link>
                                 {managerPath && (
@@ -179,17 +179,17 @@ export default function Navbar() {
                                     {user.name?.charAt(0).toUpperCase()}
                                 </div>
                                 <button onClick={handleLogout}
-                                    className="text-xs text-textMuted hover:text-textPrimary transition-colors font-mono">
+                                    className={`text-xs transition-colors font-mono ${scrolled ? 'text-textMuted hover:text-textPrimary' : 'text-white/70 hover:text-white'}`}>
                                     {t('nav_logout')}
                                 </button>
                             </div>
                         </div>
                     ) : (
                         <div className="flex items-center gap-4">
-                            <Link to="/auth" className="text-sm text-textMuted hover:text-textPrimary transition-colors">
+                            <Link to="/auth" className={`text-sm transition-colors ${scrolled ? 'text-textMuted hover:text-textPrimary' : 'text-white/80 hover:text-white'}`}>
                                 {t('nav_login')}
                             </Link>
-                            <Link to="/auth?tab=register" className="btn-ghost !py-2 !px-4 !text-[13px]">
+                            <Link to="/auth?tab=register" className={`btn-ghost !py-2 !px-4 !text-[13px] ${!scrolled ? 'text-white border-white/20 hover:border-white/40' : ''}`}>
                                 {t('nav_register')}
                             </Link>
                         </div>

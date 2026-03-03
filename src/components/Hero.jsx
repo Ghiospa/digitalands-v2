@@ -311,7 +311,7 @@ export default function Hero() {
 
                 <h1
                     data-hero
-                    className="reveal stagger-2 font-serif text-textPrimary leading-[1.1] tracking-[-0.02em] mb-6 px-2"
+                    className="reveal stagger-2 font-serif text-white leading-[1.1] tracking-[-0.02em] mb-6 px-2"
                     style={{ fontSize: 'clamp(34px, 8vw, 68px)' }}
                 >
                     Work remotely.<br />
@@ -324,7 +324,7 @@ export default function Hero() {
                     }}>Sicily.</span>
                 </h1>
 
-                <p data-hero className="reveal stagger-3 text-textMuted leading-relaxed mb-10 max-w-[480px] px-4" style={{ fontSize: 'clamp(16px, 4vw, 18px)' }}>
+                <p data-hero className="reveal stagger-3 text-white/70 leading-relaxed mb-10 max-w-[480px] px-4" style={{ fontSize: 'clamp(16px, 4vw, 18px)' }}>
                     Appartamenti verificati, fibra garantita e una community di
                     professionisti remoti nella destinazione più sottovalutata d'Europa.
                 </p>
@@ -343,7 +343,7 @@ export default function Hero() {
                             padding: '4px 10px', borderRadius: '20px',
                             background: 'var(--accent-dim)',
                             border: '1px solid var(--border)',
-                            color: 'var(--text-muted)',
+                            color: 'rgba(255, 255, 255, 0.7)',
                             whiteSpace: 'nowrap'
                         }}>
                             {b.icon} {b.label}
@@ -365,8 +365,8 @@ export default function Hero() {
                         </div>
                         <div className="text-left">
                             <div className="text-accent text-sm tracking-wider">★★★★★</div>
-                            <div className="text-xs text-textMuted">
-                                <span className="text-textPrimary font-medium">120+ nomadi</span> già in lista · 4.9 dai primi membri
+                            <div className="text-xs text-white/70">
+                                <span className="text-white font-medium">120+ nomadi</span> già in lista · 4.9 dai primi membri
                             </div>
                         </div>
                     </div>

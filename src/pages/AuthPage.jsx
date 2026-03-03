@@ -325,7 +325,7 @@ export default function AuthPage() {
             />
 
             <div className="relative z-10 w-full max-w-md">
-                <Link to="/" className="flex items-center gap-1 mb-8 text-textMuted hover:text-textPrimary transition-colors text-sm font-mono">
+                <Link to="/" className="flex items-center gap-1 mb-8 text-white/70 hover:text-white transition-colors text-sm font-mono">
                     ← Torna alla home
                 </Link>
 
