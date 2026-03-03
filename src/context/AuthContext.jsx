@@ -32,11 +32,16 @@ export function AuthProvider({ children }) {
     }, []);
 
     async function fetchProfile(authUser) {
+        console.log('Fetching profile for user:', authUser.id);
         const { data, error } = await supabase
             .from('profiles')
             .select('id, name, role, employment_type, profession, vat_number, company_name, company_role, stats_metadata')
             .eq('id', authUser.id)
             .single();
+
+        if (error) {
+            console.error('Error fetching profile from Supabase:', error);
+        }
 
         if (!error && data) {
             setUser({ ...authUser, ...data, avatar: data.name?.charAt(0).toUpperCase(), stats_metadata: data.stats_metadata || {} });
@@ -56,9 +61,13 @@ export function AuthProvider({ children }) {
             }
         });
 
-        if (error) return { error: error.message };
+        if (error) {
+            console.error('Auth registration error:', error);
+            return { error: error.message };
+        }
 
         if (data.user) {
+            console.log('Auth registration successful, creating profile:', data.user.id);
             const { error: profileError } = await supabase
                 .from('profiles')
                 .insert([{
@@ -72,7 +81,9 @@ export function AuthProvider({ children }) {
                     company_role: profileData.company_role
                 }]);
 
-            if (profileError) console.error('Error creating profile:', profileError);
+            if (profileError) {
+                console.error('Error creating profile in Supabase:', profileError);
+            }
         }
 
         return { success: true };

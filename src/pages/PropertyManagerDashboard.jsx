@@ -2,6 +2,7 @@ import { useState, useEffect, memo, useMemo, useCallback } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useI18n } from '../context/I18nContext';
+import { supabase } from '../lib/supabase';
 
 const RAGUSA_COMUNI = [
     'Ragusa', 'Modica', 'Scicli', 'Vittoria', 'Comiso',
@@ -15,8 +16,6 @@ const AMENITIES_LIST = [
     'Parcheggio', 'Vista mare', 'Giardino', 'Terrazza', 'Pet-friendly',
     'Lavatrice', 'Smart TV', 'Barbecue',
 ];
-
-import { supabase } from '../lib/supabase';
 
 async function getMyProperties(userId) {
     const { data, error } = await supabase

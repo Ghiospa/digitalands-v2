@@ -2,6 +2,7 @@ import { useState, useEffect, memo, useMemo, useCallback } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useI18n } from '../context/I18nContext';
+import { supabase } from '../lib/supabase';
 
 const RAGUSA_COMUNI = [
     'Ragusa', 'Modica', 'Scicli', 'Vittoria', 'Comiso',
@@ -23,8 +24,6 @@ const CAT_IMAGES = {
 };
 
 const DEFAULT_SLOTS = ['09:00', '11:00', '14:00', '16:00'];
-
-import { supabase } from '../lib/supabase';
 
 async function getMyActivities(userId) {
     const { data, error } = await supabase

@@ -1,4 +1,4 @@
-import { useEffect, lazy, Suspense } from 'react';
+import React, { useEffect, lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 
 import { AuthProvider } from './context/AuthContext';
@@ -18,6 +18,10 @@ import WaitlistCTA from './components/WaitlistCTA';
 import Footer from './components/Footer';
 import OnboardingOverlay from './components/OnboardingOverlay';
 
+import { injectJSONLD } from './utils/seo';
+
+import './index.css';
+
 const AuthPage = lazy(() => import('./pages/AuthPage'));
 const PropertyDetail = lazy(() => import('./pages/PropertyDetail'));
 const ActivitiesPage = lazy(() => import('./pages/ActivitiesPage'));
@@ -28,10 +32,7 @@ const PropertyManagerDashboard = lazy(() => import('./pages/PropertyManagerDashb
 const PropertiesPage = lazy(() => import('./pages/PropertiesPage'));
 const BlogPage = lazy(() => import('./pages/BlogPage'));
 const BlogPostDetail = lazy(() => import('./pages/BlogPostDetail'));
-
-import { injectJSONLD } from './utils/seo';
-
-import './index.css';
+const BackendDiagnostic = lazy(() => import('./pages/BackendDiagnostic'));
 
 function LandingPage() {
     useEffect(() => {
@@ -67,8 +68,6 @@ function LandingPage() {
         </>
     );
 }
-
-import React from 'react';
 
 // Basic Error Boundary to catch runtime crashes
 class ErrorBoundary extends React.Component {
@@ -148,6 +147,7 @@ export default function App() {
                                             <Route path="/properties" element={<PropertiesPage />} />
                                             <Route path="/blog" element={<BlogPage />} />
                                             <Route path="/blog/:slug" element={<BlogPostDetail />} />
+                                            <Route path="/debug/backend" element={<BackendDiagnostic />} />
                                             {/* Fallback */}
                                             <Route path="*" element={<LandingPage />} />
                                         </Routes>

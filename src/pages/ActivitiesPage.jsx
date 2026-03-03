@@ -1,6 +1,7 @@
 import { useState, useEffect, memo, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useBookings } from '../context/BookingContext';
 
 /* ─── Data ─── */
 const ACTIVITIES = [
@@ -117,8 +118,6 @@ const CAT_COLORS = {
     'Food & Wine': { color: '#D4A853', bg: 'rgba(212,168,83,0.10)' },
 };
 
-import { useBookings } from '../context/BookingContext';
-
 /* ─── Badge ─── */
 const CategoryBadge = memo(function CategoryBadge({ cat }) {
     const c = CAT_COLORS[cat] || { color: 'var(--accent)', bg: 'var(--accent-dim)' };
@@ -195,15 +194,29 @@ const BookingModal = memo(function BookingModal({ activity, onClose, onConfirm }
     const today = new Date().toISOString().split('T')[0];
     const [date, setDate] = useState('');
     const [timeSlot, setTimeSlot] = useState('');
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
     const [done, setDone] = useState(false);
 
     const slots = activity.slots || ['09:00', '11:00', '14:00', '16:00'];
     const canConfirm = date && (slots.length === 0 || timeSlot);
 
-    function handleConfirm() {
+    async function handleConfirm() {
         if (!canConfirm) return;
-        onConfirm({ activity, date, timeSlot });
-        setDone(true);
+        setLoading(true);
+        setError(null);
+        try {
+            const res = await onConfirm({ activity, date, timeSlot });
+            if (res?.error) {
+                setError(res.error);
+            } else {
+                setDone(true);
+            }
+        } catch (err) {
+            setError(err.message || 'Errore durante la prenotazione. Riprova più tardi.');
+        } finally {
+            setLoading(false);
+        }
     }
 
     return (
@@ -317,12 +330,22 @@ const BookingModal = memo(function BookingModal({ activity, onClose, onConfirm }
 
                         <button
                             className="btn-gold"
-                            style={{ width: '100%', padding: '13px', fontSize: '0.9rem' }}
+                            style={{ width: '100%', padding: '13px', fontSize: '0.9rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
                             onClick={handleConfirm}
-                            disabled={!canConfirm}
+                            disabled={!canConfirm || loading}
                         >
-                            Conferma prenotazione
+                            {loading && <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-white"></div>}
+                            {loading ? 'Elaborazione...' : 'Conferma prenotazione'}
                         </button>
+                        {error && (
+                            <div style={{
+                                marginTop: '12px', padding: '10px', borderRadius: '6px',
+                                background: 'rgba(248,113,113,0.1)', border: '1px solid rgba(248,113,113,0.2)',
+                                color: '#f87171', fontSize: '12px', textAlign: 'center'
+                            }}>
+                                ⚠️ {error}
+                            </div>
+                        )}
                         <p style={{ fontSize: '11px', color: 'var(--text-muted)', textAlign: 'center', marginTop: 12, fontFamily: 'monospace' }}>
                             Riceverai una conferma via email entro 24h
                         </p>
@@ -353,6 +376,7 @@ const BookingModal = memo(function BookingModal({ activity, onClose, onConfirm }
 export default function ActivitiesPage() {
     const { user } = useAuth();
     const { addBooking } = useBookings();
+    const navigate = useNavigate();
     const [activeCategory, setActiveCategory] = useState('Tutto');
     const [bookingActivity, setBookingActivity] = useState(null);
 
@@ -369,7 +393,7 @@ export default function ActivitiesPage() {
     }
 
     async function handleConfirm({ activity, date, timeSlot }) {
-        await addBooking({
+        return await addBooking({
             activityId: activity.id,
             activityName: activity.name,
             category: activity.category,
