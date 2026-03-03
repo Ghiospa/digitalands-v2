@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import { useAuth } from './AuthContext';
 import { supabase } from '../lib/supabase';
+import { createCheckoutSession, refundBooking as refundBookingApi } from '../lib/stripe';
 
 const BookingContext = createContext(null);
 
@@ -8,6 +9,7 @@ export function BookingProvider({ children }) {
     const { user } = useAuth();
     const [bookings, setBookings] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [paymentLoading, setPaymentLoading] = useState(false);
 
     useEffect(() => {
         if (user) {
@@ -21,7 +23,7 @@ export function BookingProvider({ children }) {
         setLoading(true);
         const { data, error } = await supabase
             .from('bookings')
-            .select('id, user_id, property_id, activity_id, property_name, activity_name, check_in, check_out, total_price, status, created_at')
+            .select('id, user_id, property_id, activity_id, property_name, activity_name, check_in, check_out, total_price, status, payment_status, platform_fee, manager_payout, created_at, category, emoji')
             .eq('user_id', user.id)
             .order('created_at', { ascending: false });
 
@@ -34,34 +36,51 @@ export function BookingProvider({ children }) {
     async function addBooking(booking) {
         if (!user) return { error: 'Devi essere loggato per prenotare.' };
 
-        const bookingData = {
-            user_id: user.id,
-            property_id: booking.propertyId,
-            activity_id: booking.activityId,
-            property_name: booking.propertyName,
-            activity_name: booking.activityName,
-            check_in: booking.checkIn,
-            check_out: booking.checkOut,
-            total_price: Number(booking.totalPrice || booking.price),
-            status: 'confermata',
-        };
+        setPaymentLoading(true);
+        try {
+            const { sessionUrl } = await createCheckoutSession({
+                propertyId: booking.propertyId || null,
+                activityId: booking.activityId || null,
+                propertyName: booking.propertyName || null,
+                activityName: booking.activityName || null,
+                checkIn: booking.checkIn,
+                checkOut: booking.checkOut || null,
+                guests: booking.guests,
+                months: booking.months,
+                totalPrice: Number(booking.totalPrice || booking.price),
+                category: booking.category || null,
+                emoji: booking.emoji || null,
+            });
 
-        const { data, error } = await supabase
-            .from('bookings')
-            .insert([bookingData])
-            .select()
-            .single();
-
-        if (error) {
-            console.error('Booking error:', error);
-            return { error: error.message };
+            // Redirect to Stripe Checkout
+            window.location.href = sessionUrl;
+            return { redirecting: true };
+        } catch (err) {
+            setPaymentLoading(false);
+            return { error: err.message };
         }
-
-        setBookings(prev => [data, ...prev]);
-        return data;
     }
 
     async function cancelBooking(bookingId) {
+        const booking = bookings.find(b => b.id === bookingId);
+
+        // If paid, process refund via Stripe
+        if (booking?.payment_status === 'paid') {
+            try {
+                await refundBookingApi(bookingId);
+                setBookings(prev =>
+                    prev.map(b => b.id === bookingId
+                        ? { ...b, status: 'cancellata', payment_status: 'refunded' }
+                        : b
+                    )
+                );
+                return { success: true };
+            } catch (err) {
+                return { error: err.message };
+            }
+        }
+
+        // If pending/no payment, just cancel directly
         const { error } = await supabase
             .from('bookings')
             .update({ status: 'cancellata' })
@@ -84,8 +103,9 @@ export function BookingProvider({ children }) {
         addBooking,
         cancelBooking,
         getUserBookings,
-        loading
-    }), [bookings, loading]);
+        loading,
+        paymentLoading
+    }), [bookings, loading, paymentLoading]);
 
     return (
         <BookingContext.Provider value={value}>
