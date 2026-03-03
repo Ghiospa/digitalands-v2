@@ -52,12 +52,14 @@ export function AuthProvider({ children }) {
     }
 
     async function register({ name, email, password, role = 'guest', ...profileData }) {
+        const redirectTo = import.meta.env.VITE_SITE_URL || window.location.origin;
+
         const { data, error } = await supabase.auth.signUp({
             email,
             password,
             options: {
                 data: { name, role },
-                emailRedirectTo: window.location.origin
+                emailRedirectTo: redirectTo
             }
         });
 
