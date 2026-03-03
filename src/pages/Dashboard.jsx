@@ -238,14 +238,6 @@ export default function Dashboard() {
     const { getUserBookings, cancelBooking } = useBookings();
     const [activeTab, setActiveTab] = useState('bookings');
 
-    if (loading) return (
-        <div className="min-h-screen flex items-center justify-center bg-bg">
-            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-accent"></div>
-        </div>
-    );
-
-    if (!user) return <Navigate to="/auth?redirect=/dashboard" replace />;
-
     const bookings = getUserBookings();
 
     const { propertyBookings, activityBookings, upcoming, past } = useMemo(() => {
@@ -258,6 +250,14 @@ export default function Dashboard() {
             past: pb.filter(b => b.status === 'cancellata' || new Date(b.check_out) <= new Date())
         };
     }, [bookings]);
+
+    if (loading) return (
+        <div className="min-h-screen flex items-center justify-center bg-bg">
+            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-accent"></div>
+        </div>
+    );
+
+    if (!user) return <Navigate to="/auth?redirect=/dashboard" replace />;
 
     const tabs = [
         { id: 'bookings', label: 'Prenotazioni' },
