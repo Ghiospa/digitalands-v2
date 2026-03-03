@@ -10,18 +10,21 @@ export default function OnboardingOverlay() {
     const [data, setData] = useState({});
 
     // If no user or onboarding already done, return null
-    // We check if stats_metadata has any keys as a proxy for "done"
-    if (!user || (user.stats_metadata && Object.keys(user.stats_metadata).length > 0)) {
+    if (!user || user.onboarded) {
         return null;
     }
 
     const handleComplete = async () => {
         setLoading(true);
         const { error } = await updateProfile({
+            onboarded: true,
             stats_metadata: { ...data, completed_at: new Date().toISOString() }
         });
         setLoading(false);
-        if (error) alert('Errore nel salvataggio. Riprova.');
+        if (error) {
+            console.error('Onboarding save error:', error);
+            alert('Errore nel salvataggio. Per favore riprova.');
+        }
     };
 
     const roles = {

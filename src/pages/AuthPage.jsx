@@ -2,23 +2,43 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useI18n } from '../context/I18nContext';
+import VideoBackground from '../components/VideoBackground';
 
 function InputField({ label, id, type = 'text', value, onChange, error, placeholder }) {
+    const [show, setShow] = useState(false);
+    const isPassword = type === 'password';
+    const inputType = isPassword ? (show ? 'text' : 'password') : type;
+
     return (
         <div className="flex flex-col gap-1.5">
             <label htmlFor={id} className="text-xs font-mono tracking-widest uppercase text-textMuted">
                 {label}
             </label>
-            <input
-                id={id}
-                type={type}
-                value={value}
-                onChange={onChange}
-                placeholder={placeholder}
-                autoComplete={type === 'password' ? 'current-password' : id}
-                className="waitlist-input"
-                style={error ? { borderColor: 'var(--accent)', background: 'rgba(212,168,83,0.04)' } : {}}
-            />
+            <div className="relative">
+                <input
+                    id={id}
+                    type={inputType}
+                    value={value}
+                    onChange={onChange}
+                    placeholder={placeholder}
+                    autoComplete={isPassword ? 'current-password' : id}
+                    className="waitlist-input w-full"
+                    style={{
+                        paddingRight: isPassword ? '40px' : '16px',
+                        ...(error ? { borderColor: 'var(--accent)', background: 'rgba(212,168,83,0.04)' } : {})
+                    }}
+                />
+                {isPassword && value && (
+                    <button
+                        type="button"
+                        onClick={() => setShow(!show)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-textMuted hover:text-accent transition-colors"
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '14px' }}
+                    >
+                        {show ? '👁️' : '👁️‍🗨️'}
+                    </button>
+                )}
+            </div>
             {error && (
                 <span className="text-xs font-mono" style={{ color: 'var(--accent)' }}>
                     ↳ {error}
@@ -45,13 +65,24 @@ function LoginForm({ onSuccess }) {
 
     async function handleSubmit(ev) {
         ev.preventDefault();
+        setErrors({});
+        setGlobalError('');
         const e = validate();
         if (Object.keys(e).length) { setErrors(e); return; }
         setLoading(true);
-        const res = await login(form);
-        setLoading(false);
-        if (res.error) { setGlobalError(res.error); return; }
-        onSuccess();
+        try {
+            const res = await login(form);
+            if (res.error) {
+                setGlobalError(res.error);
+            } else {
+                onSuccess();
+            }
+        } catch (err) {
+            setGlobalError('Errore di connessione. Riprova.');
+            console.error('Login submit error:', err);
+        } finally {
+            setLoading(false);
+        }
     }
 
     return (
@@ -105,13 +136,26 @@ function RegisterForm({ onSuccess }) {
 
     async function handleSubmit(ev) {
         ev.preventDefault();
+        setErrors({});
+        setGlobalError('');
         const e = validate();
         if (Object.keys(e).length) { setErrors(e); return; }
         setLoading(true);
-        const res = await register(form);
-        setLoading(false);
-        if (res.error) { setGlobalError(res.error); return; }
-        setSuccess(true);
+        console.log('Submitting registration form:', { ...form, password: '***', confirm: '***' });
+        try {
+            const res = await register(form);
+            if (res.error) {
+                console.error('Registration failed:', res.error);
+                setGlobalError(res.error);
+            } else {
+                setSuccess(true);
+            }
+        } catch (err) {
+            setGlobalError('Errore durante la registrazione. Riprova più tardi.');
+            console.error('Registration submit error:', err);
+        } finally {
+            setLoading(false);
+        }
     }
 
     if (success) {
@@ -274,10 +318,11 @@ export default function AuthPage() {
     });
 
     return (
-        <div className="min-h-screen grid-bg flex items-center justify-center px-4 pt-20 pb-12">
-            <div className="fixed inset-0 pointer-events-none" style={{
-                background: 'radial-gradient(ellipse 60% 50% at 50% 40%, rgba(212,168,83,0.04) 0%, transparent 70%)'
-            }} />
+        <div className="relative min-h-screen flex items-center justify-center px-4 pt-20 pb-12 overflow-hidden">
+            <VideoBackground
+                src="/assets/videos/hero-bg.mov"
+                overlayOpacity={0.7}
+            />
 
             <div className="relative z-10 w-full max-w-md">
                 <Link to="/" className="flex items-center gap-1 mb-8 text-textMuted hover:text-textPrimary transition-colors text-sm font-mono">

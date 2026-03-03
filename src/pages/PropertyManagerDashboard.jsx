@@ -240,22 +240,19 @@ export default function PropertyManagerDashboard() {
     const [loadingData, setLoadingData] = useState(true);
     const [editItem, setEditItem] = useState(null);
 
-    useEffect(() => {
-        if (user) refreshList();
-    }, [user]);
-
-    if (loading) return (
-        <div className="min-h-screen flex items-center justify-center bg-bg">
-            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-accent"></div>
-        </div>
-    );
-
-    if (!user) return <Navigate to="/auth?redirect=/manager/properties" replace />;
-    if (user.role !== 'property_manager') return <Navigate to="/dashboard" replace />;
-
     // For now bookings remain in localStorage as we didn't migrate them yet, 
     // but in a real case we would fetch them from Supabase too.
     const bookings = [];
+
+    const stats = useMemo(() => ({
+        published: properties.filter(p => p.published).length,
+        bookingsTotal: bookings.length,
+        bookingsConfirmed: bookings.filter(b => b.status === 'confermata').length
+    }), [properties, bookings]);
+
+    useEffect(() => {
+        if (user) refreshList();
+    }, [user]);
 
     async function refreshList() {
         setLoadingData(true);
@@ -283,11 +280,14 @@ export default function PropertyManagerDashboard() {
         setActiveTab('new');
     }, []);
 
-    const stats = useMemo(() => ({
-        published: properties.filter(p => p.published).length,
-        bookingsTotal: bookings.length,
-        bookingsConfirmed: bookings.filter(b => b.status === 'confermata').length
-    }), [properties, bookings]);
+    if (loading) return (
+        <div className="min-h-screen flex items-center justify-center bg-bg">
+            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-accent"></div>
+        </div>
+    );
+
+    if (!user) return <Navigate to="/auth?redirect=/manager/properties" replace />;
+    if (user.role !== 'property_manager') return <Navigate to="/dashboard" replace />;
 
     const tabs = [
         { id: 'list', label: t('mgr_my_properties') },

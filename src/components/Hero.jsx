@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import sicilyImage from '../assets/sicily-outline.png';
+import VideoBackground from './VideoBackground';
 
 const AVATARS = [
     { bg: 'linear-gradient(135deg,#8A6B3A,#D4A853)' },
@@ -203,9 +204,13 @@ export default function Hero() {
     return (
         <section
             ref={heroRef}
-            className="relative min-h-[90vh] md:min-h-screen flex flex-col items-center justify-center grid-bg overflow-hidden"
+            className="relative min-h-[90vh] md:min-h-screen flex flex-col items-center justify-center overflow-hidden"
             style={{ paddingTop: '100px', paddingBottom: '0' }}
         >
+            <VideoBackground
+                src="/assets/videos/hero-bg.mov"
+                overlayOpacity={0.65}
+            />
             {/* ── Background glows ── */}
             <div className="absolute inset-0 pointer-events-none">
                 <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 75% 55% at 50% 45%, rgba(212,168,83,0.09) 0%, transparent 68%)' }} />

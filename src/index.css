@@ -332,10 +332,11 @@ body {
 
 /* ── Smooth nav ── */
 .navbar-scroll {
-    background: var(--surface) !important;
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+    background: rgba(var(--bg-rgb), 0.75) !important;
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
     border-bottom: 1px solid var(--border);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
 }
 
 /* ── Avatar stack ── */

@@ -35,7 +35,7 @@ export function AuthProvider({ children }) {
         console.log('Fetching profile for user:', authUser.id);
         const { data, error } = await supabase
             .from('profiles')
-            .select('id, name, role, employment_type, profession, vat_number, company_name, company_role, stats_metadata')
+            .select('id, name, role, employment_type, profession, vat_number, company_name, company_role, stats_metadata, onboarded')
             .eq('id', authUser.id)
             .single();
 
@@ -58,7 +58,15 @@ export function AuthProvider({ children }) {
             email,
             password,
             options: {
-                data: { name, role },
+                data: {
+                    name,
+                    role,
+                    employment_type: profileData.employment_type,
+                    profession: profileData.profession,
+                    vat_number: profileData.vat_number,
+                    company_name: profileData.company_name,
+                    company_role: profileData.company_role
+                },
                 emailRedirectTo: redirectTo
             }
         });
@@ -68,36 +76,23 @@ export function AuthProvider({ children }) {
             return { error: error.message };
         }
 
-        if (data.user) {
-            console.log('Auth registration successful, creating profile:', data.user.id);
-            const { error: profileError } = await supabase
-                .from('profiles')
-                .insert([{
-                    id: data.user.id,
-                    name,
-                    role,
-                    employment_type: profileData.employment_type,
-                    profession: profileData.profession,
-                    vat_number: profileData.vat_number,
-                    company_name: profileData.company_name,
-                    company_role: profileData.company_role
-                }]);
-
-            if (profileError) {
-                console.error('Error creating profile in Supabase:', profileError);
-            }
-        }
-
+        console.log('Auth registration successful for:', data.user?.id);
         return { success: true };
     }
 
     async function login({ email, password }) {
+        console.log('Attempting login for:', email);
         const { data, error } = await supabase.auth.signInWithPassword({
             email,
             password,
         });
 
-        if (error) return { error: error.message };
+        if (error) {
+            console.error('Login error:', error);
+            return { error: error.message };
+        }
+
+        console.log('Login successful for:', email);
         return { success: true };
     }
 

@@ -83,7 +83,9 @@ const ActivityForm = memo(function ActivityForm({ user, onSaved, editItem }) {
             description: form.description,
             image_url: form.image || CAT_IMAGES[form.category] || CAT_IMAGES['Altro'],
             published: form.published,
-            // duration, location, slots could be added as JSON or separate columns if needed
+            duration: form.duration,
+            location: form.location,
+            slots: form.slots
         };
 
         let result;
@@ -332,20 +334,17 @@ export default function ActivityManagerDashboard() {
     const [loadingData, setLoadingData] = useState(true);
     const [editItem, setEditItem] = useState(null);
 
+    const bookings = []; // LocalStorage migration for bookings pending
+
+    const stats = useMemo(() => ({
+        published: activities.filter(a => a.published).length,
+        bookingsTotal: bookings.length,
+        bookingsConfirmed: bookings.filter(b => b.status === 'confermata').length
+    }), [activities, bookings]);
+
     useEffect(() => {
         if (user) refreshList();
     }, [user]);
-
-    if (loading) return (
-        <div className="min-h-screen flex items-center justify-center bg-bg">
-            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-accent"></div>
-        </div>
-    );
-
-    if (!user) return <Navigate to="/auth?redirect=/manager/activities" replace />;
-    if (user.role !== 'activity_manager') return <Navigate to="/dashboard" replace />;
-
-    const bookings = []; // LocalStorage migration for bookings pending
 
     async function refreshList() {
         setLoadingData(true);
@@ -371,11 +370,14 @@ export default function ActivityManagerDashboard() {
         setActiveTab('new');
     }, []);
 
-    const stats = useMemo(() => ({
-        published: activities.filter(a => a.published).length,
-        bookingsTotal: bookings.length,
-        bookingsConfirmed: bookings.filter(b => b.status === 'confermata').length
-    }), [activities, bookings]);
+    if (loading) return (
+        <div className="min-h-screen flex items-center justify-center bg-bg">
+            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-accent"></div>
+        </div>
+    );
+
+    if (!user) return <Navigate to="/auth?redirect=/manager/activities" replace />;
+    if (user.role !== 'activity_manager') return <Navigate to="/dashboard" replace />;
 
     const tabs = [
         { id: 'list', label: t('mgr_my_activities') },
