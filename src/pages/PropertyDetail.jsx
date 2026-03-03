@@ -367,8 +367,8 @@ export default function PropertyDetail() {
                                 position: 'absolute', bottom: '-20px', left: '50%',
                                 transform: 'translateX(-50%)', width: '140px', height: '200px',
                                 borderRadius: '70px 70px 0 0',
-                                background: property.archColor,
-                                border: `1px solid ${property.archColor.replace(/[\d.]+\)$/, '0.4)')}`,
+                                background: property.archColor || 'rgba(212,168,83,0.18)',
+                                border: `1px solid ${(property.archColor || 'rgba(212,168,83,0.18)').replace(/[\d.]+\)$/, '0.4)')}`,
                                 mixBlendMode: 'screen',
                             }} />
                             {/* WiFi badge */}
