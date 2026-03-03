@@ -37,13 +37,13 @@ export default function VideoBackground({ src, overlayOpacity = 0.6, className =
                 className="absolute inset-0"
                 style={{
                     background: `rgba(0, 0, 0, ${overlayOpacity})`,
-                    backdropFilter: 'blur(2px)' // Optional slight blur for text separation
+                    backdropFilter: 'blur(1px)' // Reduced blur for clearer view
                 }}
             />
 
             {/* Ambient Top/Bottom Gradients */}
             <div className="absolute inset-0" style={{
-                background: 'linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, transparent 20%, transparent 80%, rgba(0,0,0,0.6) 100%)'
+                background: 'linear-gradient(to bottom, rgba(0,0,0,0.25) 0%, transparent 20%, transparent 80%, rgba(0,0,0,0.4) 100%)'
             }} />
         </div>
     );

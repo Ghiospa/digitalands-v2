@@ -209,7 +209,7 @@ export default function Hero() {
         >
             <VideoBackground
                 src="/assets/videos/hero-bg.mp4"
-                overlayOpacity={0.65}
+                overlayOpacity={0.45}
             />
             {/* ── Background glows ── */}
             <div className="absolute inset-0 pointer-events-none">
