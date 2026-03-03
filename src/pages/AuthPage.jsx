@@ -318,9 +318,9 @@ export default function AuthPage() {
     });
 
     return (
-        <div className="relative min-h-screen flex items-center justify-center px-4 pt-20 pb-12 overflow-hidden">
+        <div className="relative min-h-screen grid-bg flex items-center justify-center px-4 pt-20 pb-12 overflow-hidden">
             <VideoBackground
-                src="/assets/videos/hero-bg.mov"
+                src="/assets/videos/hero-bg.mp4"
                 overlayOpacity={0.7}
             />
 

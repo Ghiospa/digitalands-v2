@@ -204,11 +204,11 @@ export default function Hero() {
     return (
         <section
             ref={heroRef}
-            className="relative min-h-[90vh] md:min-h-screen flex flex-col items-center justify-center overflow-hidden"
+            className="relative min-h-[90vh] md:min-h-screen flex flex-col items-center justify-center grid-bg overflow-hidden"
             style={{ paddingTop: '100px', paddingBottom: '0' }}
         >
             <VideoBackground
-                src="/assets/videos/hero-bg.mov"
+                src="/assets/videos/hero-bg.mp4"
                 overlayOpacity={0.65}
             />
             {/* ── Background glows ── */}

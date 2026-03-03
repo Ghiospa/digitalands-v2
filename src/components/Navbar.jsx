@@ -123,18 +123,15 @@ export default function Navbar() {
     }
 
     return (
-        <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${scrolled ? 'navbar-scroll' : 'bg-transparent pt-2'}`}>
-            <div className={`max-w-content mx-auto px-6 md:px-10 h-16 flex items-center justify-between transition-all duration-300 ${scrolled ? 'scale-100' : 'scale-[1.02]'}`}>
+        <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? 'navbar-scroll' : 'bg-transparent'}`}>
+            <div className="max-w-content mx-auto px-6 md:px-10 h-16 flex items-center justify-between">
                 {/* Wordmark */}
-                <Link to="/" className="flex items-center gap-2 group">
-                    <div className="w-2.5 h-2.5 rounded-full bg-accent animate-pulse shadow-[0_0_10px_var(--accent)]" />
-                    <span className="font-sans font-bold text-textPrimary text-xl tracking-tight transition-transform group-hover:translate-x-0.5">
-                        Digitalands
-                    </span>
+                <Link to="/" className="flex items-center gap-1.5 font-sans font-medium text-textPrimary text-lg tracking-tight">
+                    <span className="text-accent">·</span>Digitalands
                 </Link>
 
                 {/* Desktop links */}
-                <ul className="hidden lg:flex items-center gap-8">
+                <ul className="hidden md:flex items-center gap-6">
                     {[
                         { to: '/#process', label: t('nav_how'), isHash: true },
                         { to: '/strutture', label: t('nav_properties') },
@@ -146,14 +143,12 @@ export default function Navbar() {
                     ].map(link => (
                         <li key={link.label}>
                             {link.isHash ? (
-                                <a href={link.to} className="relative text-[13px] font-medium text-textPrimary/80 hover:text-accent transition-all duration-300 group py-2">
+                                <a href={link.to} className="text-sm text-textPrimary hover:text-accent transition-colors duration-200">
                                     {link.label}
-                                    <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-accent transition-all duration-300 group-hover:w-full" />
                                 </a>
                             ) : (
-                                <Link to={link.to} className="relative text-[13px] font-medium text-textPrimary/80 hover:text-accent transition-all duration-300 group py-2">
+                                <Link to={link.to} className="text-sm text-textPrimary hover:text-accent transition-colors duration-200">
                                     {link.label}
-                                    <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-accent transition-all duration-300 group-hover:w-full" />
                                 </Link>
                             )}
                         </li>
@@ -161,44 +156,40 @@ export default function Navbar() {
                 </ul>
 
                 {/* CTA / User area */}
-                <div className="hidden md:flex items-center gap-5">
-                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-surface-2/50 border border-border-light shadow-sm">
-                        <ThemeToggle />
-                        <div className="w-px h-4 bg-border" />
-                        <LangSwitcher />
-                    </div>
+                <div className="hidden md:flex items-center gap-4">
+                    <ThemeToggle />
+                    <LangSwitcher />
 
                     {user ? (
-                        <div className="flex items-center gap-4">
-                            <div className="flex flex-col items-end gap-0.5">
-                                <Link to="/dashboard" className="text-[11px] font-bold text-textPrimary hover:text-accent transition-colors uppercase tracking-wider">
+                        <div className="flex items-center gap-3">
+                            <div className="flex flex-col items-end gap-0">
+                                <Link to="/dashboard" className="text-[12px] font-medium text-textMuted hover:text-textPrimary transition-colors">
                                     {t('nav_dashboard')}
                                 </Link>
                                 {managerPath && (
                                     <Link to={managerPath}
-                                        className="text-[10px] font-mono font-bold text-accent hover:underline decoration-accent/30 underline-offset-4">
+                                        className="text-[11px] font-mono font-bold text-accent hover:underline underline-offset-4">
                                         {t('nav_manager')} ↗
                                     </Link>
                                 )}
                             </div>
-                            <div className="group relative">
-                                <div className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold text-[#000] shadow-lg transition-transform group-hover:scale-110"
+                            <div className="flex items-center gap-2">
+                                <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-bg"
                                     style={{ background: 'var(--accent)' }}>
                                     {user.name?.charAt(0).toUpperCase()}
                                 </div>
                                 <button onClick={handleLogout}
-                                    className="absolute -bottom-1 -right-1 w-5 h-5 bg-surface-2 border border-border rounded-full flex items-center justify-center text-[10px] text-textMuted hover:text-red-400 transition-colors shadow-sm"
-                                    title={t('nav_logout')}>
-                                    ✕
+                                    className="text-xs text-textMuted hover:text-textPrimary transition-colors font-mono">
+                                    {t('nav_logout')}
                                 </button>
                             </div>
                         </div>
                     ) : (
-                        <div className="flex items-center gap-3">
-                            <Link to="/auth" className="text-sm font-medium text-textMuted hover:text-textPrimary transition-colors px-2">
+                        <div className="flex items-center gap-4">
+                            <Link to="/auth" className="text-sm text-textMuted hover:text-textPrimary transition-colors">
                                 {t('nav_login')}
                             </Link>
-                            <Link to="/auth?tab=register" className="btn-gold !py-2 !px-5 !text-[13px] shadow-lg shadow-accent/10">
+                            <Link to="/auth?tab=register" className="btn-ghost !py-2 !px-4 !text-[13px]">
                                 {t('nav_register')}
                             </Link>
                         </div>
