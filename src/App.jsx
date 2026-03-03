@@ -81,22 +81,36 @@ class ErrorBoundary extends React.Component {
     }
     render() {
         if (this.state.hasError) {
+            const isLoadError = this.state.error?.name === 'ChunkLoadError' ||
+                (this.state.error?.message && this.state.error.message.includes('dynamically imported module'));
+
             return (
                 <div style={{
                     padding: '40px',
                     textAlign: 'center',
-                    background: '#0A0A0A',
-                    color: '#D4A853',
+                    background: 'var(--bg)',
+                    color: 'var(--text-primary)',
                     minHeight: '100vh',
-                    fontFamily: 'monospace'
+                    fontFamily: 'monospace',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center'
                 }}>
-                    <h1>Something went wrong.</h1>
-                    <p>{this.state.error?.toString()}</p>
+                    <h1 style={{ color: 'var(--accent)', marginBottom: '16px' }}>
+                        {isLoadError ? 'Aggiornamento disponibile' : 'Ops! Qualcosa è andato storto'}
+                    </h1>
+                    <p style={{ maxWidth: '600px', marginBottom: '24px', opacity: 0.8 }}>
+                        {isLoadError
+                            ? 'È stata pubblicata una nuova versione del sito. Ricarica la pagina per continuare.'
+                            : this.state.error?.toString()}
+                    </p>
                     <button
                         onClick={() => window.location.reload()}
-                        style={{ background: '#D4A853', color: '#0A0A0A', border: 'none', padding: '10px 20px', cursor: 'pointer' }}
+                        className="btn-gold"
+                        style={{ padding: '12px 32px' }}
                     >
-                        Retry
+                        {isLoadError ? 'Aggiorna ora' : 'Riprova'}
                     </button>
                 </div>
             );

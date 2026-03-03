@@ -84,7 +84,7 @@ export default function OnboardingOverlay() {
     const config = roles[user.role] || roles.guest;
 
     return (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-6 bg-black/80 backdrop-blur-sm animate-fade-in">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-6 bg-bg/80 backdrop-blur-sm animate-fade-in" style={{ backgroundColor: 'rgba(var(--bg-rgb, 0,0,0), 0.8)' }}>
             <div className="bg-surface border border-border-light rounded-2xl p-8 max-w-lg w-full shadow-2xl relative overflow-hidden">
                 {/* Background Glow */}
                 <div className="absolute top-0 right-0 w-64 h-64 bg-accent/5 blur-3xl rounded-full -mr-32 -mt-32 pointer-events-none" />
