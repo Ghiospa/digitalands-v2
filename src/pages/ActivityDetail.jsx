@@ -54,7 +54,7 @@ export default function ActivityDetail() {
     }, [id]);
 
     const [guests, setGuests] = useState(1);
-    const totalPrice = activity.price * guests;
+    const totalPrice = activity ? activity.price * guests : 0;
 
     async function handleBook(e) {
         e.preventDefault();
