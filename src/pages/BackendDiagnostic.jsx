@@ -36,6 +36,20 @@ export default function BackendDiagnostic() {
                     newStatus.tables[table] = error ? `❌ Error: ${error.message}` : '✅ OK';
                 }
 
+                // 3. Test API Health
+                try {
+                    const apiRes = await fetch('/api/health');
+                    if (apiRes.ok) {
+                        const apiData = await apiRes.json();
+                        newStatus.api = { status: '✅ OK', detail: apiData };
+                    } else {
+                        const text = await apiRes.text();
+                        newStatus.api = { status: '❌ Fallito', detail: `Status ${apiRes.status}: ${text.slice(0, 100)}` };
+                    }
+                } catch (apiErr) {
+                    newStatus.api = { status: '❌ Errore Network', detail: apiErr.message };
+                }
+
                 setStatus(newStatus);
             } catch (err) {
                 setStatus(prev => ({ ...prev, connection: 'failed', error: err.toString() }));
@@ -95,9 +109,31 @@ export default function BackendDiagnostic() {
                         </div>
                     ))}
                 </div>
-                <p style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '16px' }}>
-                    Nota: Gli errori potrebbero essere dovuti a tabelle mancanti o politiche RLS restrittive.
-                </p>
+            </div>
+
+            {/* API Health */}
+            <div style={cardStyle}>
+                <h3 style={{ marginTop: 0, fontSize: '14px', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-muted)' }}>Vercel API Health</h3>
+                <div style={{ marginTop: '16px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                        <span>Status:</span>
+                        <span style={{ fontWeight: 600 }}>{status.api?.status || 'In attesa...'}</span>
+                    </div>
+                    {status.api?.detail && (
+                        <pre style={{
+                            background: 'rgba(0,0,0,0.2)',
+                            padding: '12px',
+                            borderRadius: '8px',
+                            fontSize: '11px',
+                            fontFamily: 'monospace',
+                            color: 'var(--text-muted)',
+                            whiteSpace: 'pre-wrap',
+                            wordBreak: 'break-all'
+                        }}>
+                            {typeof status.api.detail === 'string' ? status.api.detail : JSON.stringify(status.api.detail, null, 2)}
+                        </pre>
+                    )}
+                </div>
             </div>
 
             <button
