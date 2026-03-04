@@ -2,7 +2,7 @@ const CHECKLIST = [
     'Appartamento fiber-verified + router 4G backup',
     'SIM locale all\'arrivo',
     'Welcome kit (prodotti siciliani + guida curata)',
-    'Accesso community Slack privata',
+    'Accesso community Discord privata',
     '1 esperienza curata / mese (Ragusa Ibla, produttori locali)',
     'Supporto WhatsApp per tutta la durata del soggiorno',
     'Founding Member badge sul tuo profilo — per sempre',

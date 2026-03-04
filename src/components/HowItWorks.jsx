@@ -12,7 +12,7 @@ const STEPS = [
     {
         num: '03',
         title: 'Arriva e connettiti',
-        desc: 'Welcome kit, invito Slack, SIM locale e una guida curata ad aspettarti. Pensiamo noi alla logistica.',
+        desc: 'Welcome kit, invito Discord, SIM locale e una guida curata ad aspettarti. Pensiamo noi alla logistica.',
     },
 ];
 

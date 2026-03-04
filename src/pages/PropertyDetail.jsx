@@ -6,6 +6,8 @@ import { useBookings } from '../context/BookingContext';
 import { SEED_PROPERTIES } from '../data/seedProperties';
 
 import { supabase } from '../lib/supabase';
+import StarRating from '../components/StarRating';
+import ReviewSection from '../components/ReviewSection';
 
 function getSeedPropertyById(id) {
     return SEED_PROPERTIES.find(p => p.id === id);
@@ -287,6 +289,27 @@ export default function PropertyDetail() {
     const navigate = useNavigate();
     const [property, setProperty] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [ratingData, setRatingData] = useState({ avg: 0, count: 0 });
+
+    useEffect(() => {
+        async function fetchRating() {
+            try {
+                const { data, error } = await supabase
+                    .from('reviews')
+                    .select('rating')
+                    .eq('entity_type', 'property')
+                    .eq('entity_id', id);
+
+                if (!error && data && data.length > 0) {
+                    const avg = data.reduce((acc, r) => acc + r.rating, 0) / data.length;
+                    setRatingData({ avg, count: data.length });
+                }
+            } catch (err) {
+                console.error('Error fetching rating for PropertyDetail:', err);
+            }
+        }
+        fetchRating();
+    }, [id]);
 
     useEffect(() => {
         async function fetchProperty() {
@@ -383,7 +406,15 @@ export default function PropertyDetail() {
                         <h1 className="font-serif text-textPrimary mb-2" style={{ fontSize: '36px', lineHeight: 1.1 }}>
                             {property.name}
                         </h1>
-                        <p className="text-textMuted text-sm mb-8">{property.location}</p>
+                        <div className="flex items-center gap-4 mb-4">
+                            <div className="flex items-center gap-2">
+                                <StarRating rating={Math.round(ratingData.avg)} size={20} />
+                                {ratingData.count > 0 && (
+                                    <span className="text-sm font-bold text-accent">{ratingData.avg.toFixed(1)}</span>
+                                )}
+                            </div>
+                            <span className="text-textMuted text-sm">{property.location}</span>
+                        </div>
 
                         {/* Description */}
                         <p className="text-textPrimary leading-relaxed mb-8 text-[15px]">{property.description}</p>
@@ -438,6 +469,27 @@ export default function PropertyDetail() {
                                     </li>
                                 ))}
                             </ul>
+                        </div>
+
+                        {/* Map Location */}
+                        {property.map_url && (
+                            <div className="p-6 rounded-xl mb-8" style={{ background: 'var(--surface)', border: '1px solid var(--border-light)' }}>
+                                <h3 className="text-xs font-mono tracking-widest uppercase text-accent mb-4">Posizione Esatta</h3>
+                                <div className="flex items-start gap-4">
+                                    <div className="mt-1 text-xl">📍</div>
+                                    <div>
+                                        <p className="text-textPrimary font-medium mb-1">{property.location}, {property.comune}</p>
+                                        <a href={property.map_url} target="_blank" rel="noopener noreferrer" className="text-xs text-accent underline">
+                                            Visualizza sulla mappa precisa
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Reviews Section */}
+                        <div id="reviews">
+                            <ReviewSection entityType="property" entityId={property.id} />
                         </div>
                     </div>
 

@@ -35,7 +35,7 @@ export function AuthProvider({ children }) {
         console.log('Fetching profile for user:', authUser.id);
         const { data, error } = await supabase
             .from('profiles')
-            .select('id, name, role, employment_type, profession, vat_number, company_name, company_role, stats_metadata, onboarded')
+            .select('id, name, role, employment_type, profession, vat_number, company_name, company_role, stats_metadata, onboarded, is_premium')
             .eq('id', authUser.id)
             .single();
 

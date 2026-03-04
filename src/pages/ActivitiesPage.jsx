@@ -1,7 +1,10 @@
-import { useState, memo, useMemo } from 'react';
+import { useState, memo, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useBookings } from '../context/BookingContext';
+import { supabase } from '../lib/supabase';
+import StarRating from '../components/StarRating';
+import ReviewSection from '../components/ReviewSection';
 import { CATEGORIES, CAT_COLORS } from '../data/categories';
 
 /* ─── Data ─── */
@@ -125,6 +128,28 @@ const CategoryBadge = memo(function CategoryBadge({ cat }) {
 
 /* ─── Activity Card ─── */
 const ActivityCard = memo(function ActivityCard({ activity, onBook }) {
+    const [ratingData, setRatingData] = useState({ avg: 0, count: 0 });
+
+    useEffect(() => {
+        async function fetchRating() {
+            try {
+                const { data, error } = await supabase
+                    .from('reviews')
+                    .select('rating')
+                    .eq('entity_type', 'activity')
+                    .eq('entity_id', activity.id.toString());
+
+                if (!error && data && data.length > 0) {
+                    const avg = data.reduce((acc, r) => acc + r.rating, 0) / data.length;
+                    setRatingData({ avg, count: data.length });
+                }
+            } catch (err) {
+                console.error('Error fetching rating for ActivityCard:', err);
+            }
+        }
+        fetchRating();
+    }, [activity.id]);
+
     return (
         <div className="card-hover" style={{ background: 'var(--surface)', overflow: 'hidden' }}>
             {/* Image */}
@@ -150,9 +175,15 @@ const ActivityCard = memo(function ActivityCard({ activity, onBook }) {
             <div style={{ padding: '18px 20px 20px' }}>
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginBottom: 8 }}>
                     <span style={{ fontSize: '1.4rem', lineHeight: 1, marginTop: 2 }}>{activity.emoji}</span>
-                    <div>
-                        <div style={{ fontWeight: 600, fontSize: '0.95rem', color: 'var(--text-primary)', lineHeight: 1.3 }}>
-                            {activity.name}
+                    <div style={{ flex: 1 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                            <div style={{ fontWeight: 600, fontSize: '0.95rem', color: 'var(--text-primary)', lineHeight: 1.3 }}>
+                                {activity.name}
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                <StarRating rating={Math.round(ratingData.avg)} size={10} />
+                                {ratingData.count > 0 && <span style={{ fontSize: '9px', color: 'var(--text-muted)' }}>({ratingData.count})</span>}
+                            </div>
                         </div>
                         <div style={{ fontSize: '11px', fontFamily: 'monospace', color: 'var(--text-muted)', marginTop: 3 }}>
                             ⏱ {activity.duration}
@@ -358,6 +389,11 @@ const BookingModal = memo(function BookingModal({ activity, onClose, onConfirm }
                         </button>
                     </div>
                 )}
+
+                {/* Reviews Section inside Modal */}
+                <div style={{ maxHeight: '300px', overflowY: 'auto', marginTop: '20px', borderTop: '1px solid var(--border)', paddingTop: '20px' }}>
+                    <ReviewSection entityType="activity" entityId={activity.id} />
+                </div>
             </div>
         </div>
     );
@@ -371,9 +407,38 @@ export default function ActivitiesPage() {
     const [activeCategory, setActiveCategory] = useState('Tutto');
     const [bookingActivity, setBookingActivity] = useState(null);
 
+    const [dbActivities, setDbActivities] = useState([]);
+
+    useEffect(() => {
+        async function fetchDbActivities() {
+            const { data, error } = await supabase
+                .from('activities')
+                .select('*')
+                .eq('published', true);
+
+            if (!error && data) {
+                // Map DB fields to SEED structure if necessary
+                const mapped = data.map(a => ({
+                    ...a,
+                    image: a.image_url || a.image
+                }));
+                setDbActivities(mapped);
+            }
+        }
+        fetchDbActivities();
+    }, []);
+
+    const allActivities = useMemo(() => {
+        // Create a map to avoid duplicates (prioritizing DB data)
+        const map = new Map();
+        ACTIVITIES.forEach(a => map.set(a.id, a));
+        dbActivities.forEach(a => map.set(a.id, a));
+        return Array.from(map.values());
+    }, [dbActivities]);
+
     const filtered = useMemo(() => activeCategory === 'Tutto'
-        ? ACTIVITIES
-        : ACTIVITIES.filter(a => a.category === activeCategory), [activeCategory]);
+        ? allActivities
+        : allActivities.filter(a => a.category === activeCategory), [activeCategory, allActivities]);
 
     function handleBook(activity) {
         if (!user) {
@@ -477,7 +542,9 @@ export default function ActivitiesPage() {
                 gap: '24px',
             }}>
                 {filtered.map(activity => (
-                    <ActivityCard key={activity.id} activity={activity} onBook={handleBook} />
+                    <Link key={activity.id} to={`/activity/${activity.id}`} style={{ textDecoration: 'none' }}>
+                        <ActivityCard activity={activity} onBook={handleBook} />
+                    </Link>
                 ))}
             </div>
 

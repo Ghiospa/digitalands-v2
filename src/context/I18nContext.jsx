@@ -82,6 +82,15 @@ const TRANSLATIONS = {
         mgr_publish: 'Pubblica',
         mgr_delete: 'Elimina',
         mgr_no_bookings: 'Nessuna prenotazione ancora.',
+        // Reviews
+        rev_title: 'Recensioni',
+        rev_empty: 'Ancora nessuna recensione. Sii il primo!',
+        rev_add: 'Lascia una recensione',
+        rev_comment: 'Il tuo commento',
+        rev_submit: 'Invia Recensione',
+        rev_success: 'Recensione inviata con successo!',
+        rev_login: 'Accedi per lasciare una recensione',
+        rev_rating: 'Valutazione',
     },
     en: {
         nav_how: 'How it works',
@@ -150,6 +159,15 @@ const TRANSLATIONS = {
         mgr_publish: 'Publish',
         mgr_delete: 'Delete',
         mgr_no_bookings: 'No bookings yet.',
+        // Reviews
+        rev_title: 'Reviews',
+        rev_empty: 'No reviews yet. Be the first!',
+        rev_add: 'Leave a review',
+        rev_comment: 'Your comment',
+        rev_submit: 'Submit Review',
+        rev_success: 'Review submitted successfully!',
+        rev_login: 'Login to leave a review',
+        rev_rating: 'Rating',
     },
     es: {
         nav_how: 'Cómo funciona',
@@ -218,6 +236,15 @@ const TRANSLATIONS = {
         mgr_publish: 'Publicar',
         mgr_delete: 'Eliminar',
         mgr_no_bookings: 'Sin reservas todavía.',
+        // Reviews
+        rev_title: 'Reseñas',
+        rev_empty: 'Aún no hay reseñas. ¡Sé el primero!',
+        rev_add: 'Dejar una reseña',
+        rev_comment: 'Tu comentario',
+        rev_submit: 'Enviar reseña',
+        rev_success: '¡Reseña enviada con éxito!',
+        rev_login: 'Inicia sesión para dejar una reseña',
+        rev_rating: 'Calificación',
     },
     fr: {
         nav_how: 'Comment ça marche',
@@ -286,6 +313,15 @@ const TRANSLATIONS = {
         mgr_publish: 'Publier',
         mgr_delete: 'Supprimer',
         mgr_no_bookings: 'Aucune réservation.',
+        // Reviews
+        rev_title: 'Avis',
+        rev_empty: 'Aucun avis pour le moment. Soyez le premier !',
+        rev_add: 'Laisser un avis',
+        rev_comment: 'Votre commentaire',
+        rev_submit: 'Envoyer l\'avis',
+        rev_success: 'Avis envoyé con succès !',
+        rev_login: 'Connectez-vous pour laisser un avis',
+        rev_rating: 'Note',
     },
 };
 

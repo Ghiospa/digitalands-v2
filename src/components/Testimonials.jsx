@@ -7,7 +7,7 @@ const TESTIMONIALS = [
         grad: 'linear-gradient(135deg, #8A6B3A, #D4A853)',
     },
     {
-        quote: 'La fibra ha funzionato dal primo giorno. La community Slack è davvero attiva. Tutto quello che dovevo sapere.',
+        quote: 'La fibra ha funzionato dal primo giorno. La community Discord è davvero attiva. Tutto quello che dovevo sapere.',
         name: 'Sarah, 28',
         role: 'UX Designer · Berlino',
         initials: 'S',

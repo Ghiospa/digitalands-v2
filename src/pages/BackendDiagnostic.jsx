@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { Link } from 'react-router-dom';
 
-const TABLES = ['profiles', 'bookings', 'activities', 'properties'];
+const TABLES = ['profiles', 'bookings', 'activities', 'properties', 'reviews'];
 
 export default function BackendDiagnostic() {
     const [status, setStatus] = useState({

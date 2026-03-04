@@ -31,6 +31,7 @@ const ActivityManagerDashboard = lazy(() => import('./pages/ActivityManagerDashb
 const PropertyManagerDashboard = lazy(() => import('./pages/PropertyManagerDashboard'));
 const PropertiesPage = lazy(() => import('./pages/PropertiesPage'));
 const BlogPage = lazy(() => import('./pages/BlogPage'));
+const ActivityDetail = lazy(() => import('./pages/ActivityDetail'));
 const BlogPostDetail = lazy(() => import('./pages/BlogPostDetail'));
 const BackendDiagnostic = lazy(() => import('./pages/BackendDiagnostic'));
 
@@ -140,6 +141,7 @@ export default function App() {
                                             <Route path="/property/:id" element={<PropertyDetail />} />
                                             <Route path="/dashboard" element={<Dashboard />} />
                                             <Route path="/activities" element={<ActivitiesPage />} />
+                                            <Route path="/activity/:id" element={<ActivityDetail />} />
                                             <Route path="/mappa" element={<MapPage />} />
                                             <Route path="/manager/activities" element={<ActivityManagerDashboard />} />
                                             <Route path="/manager/properties" element={<PropertyManagerDashboard />} />

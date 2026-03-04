@@ -44,7 +44,10 @@ export default function PropertiesPage() {
     }, []);
 
     const allProperties = useMemo(() => {
-        return [...SEED_PROPERTIES, ...dbProperties];
+        const map = new Map();
+        SEED_PROPERTIES.forEach(p => map.set(p.id, p));
+        dbProperties.forEach(p => map.set(p.id, p));
+        return Array.from(map.values());
     }, [dbProperties]);
 
     const filtered = allProperties.filter(p => {

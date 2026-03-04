@@ -281,6 +281,31 @@ export default function Dashboard() {
     return (
         <div className="min-h-screen pt-20 pb-20 px-6 md:px-10">
             <div className="max-w-content mx-auto">
+                {/* Premium Banner */}
+                {user.is_premium && (
+                    <div className="mb-8 p-6 rounded-xl animate-fade-in" style={{ background: 'linear-gradient(90deg, #5865F2 0%, #4752C4 100%)', boxShadow: '0 8px 30px rgba(88, 101, 242, 0.25)' }}>
+                        <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+                            <div className="flex items-center gap-5">
+                                <div className="w-14 h-14 rounded-2xl bg-white/10 backdrop-blur-md flex items-center justify-center text-3xl border border-white/20">
+                                    👾
+                                </div>
+                                <div>
+                                    <div className="text-white font-serif text-xl mb-1">Benvenuto nella Community Premium</div>
+                                    <p className="text-white/80 text-sm">Hai accesso esclusivo al server Discord di Digitalands.</p>
+                                </div>
+                            </div>
+                            <a
+                                href="https://discord.gg/hR7bynNd"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="bg-white text-[#5865F2] px-8 py-3 rounded-lg font-bold text-sm tracking-wide hover:scale-105 transition-transform"
+                            >
+                                ENTRA NEL DISCORD
+                            </a>
+                        </div>
+                    </div>
+                )}
+
                 {/* Header */}
                 <div className="flex items-start justify-between mb-10">
                     <div className="flex items-center gap-4">

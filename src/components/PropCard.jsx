@@ -1,5 +1,7 @@
 import { Link } from 'react-router-dom';
-import { memo } from 'react';
+import { memo, useState, useEffect } from 'react';
+import { supabase } from '../lib/supabase';
+import StarRating from './StarRating';
 
 const optimizeUnsplash = (url) => {
     if (!url || !url.includes('unsplash.com')) return url;
@@ -22,6 +24,28 @@ const PropCard = memo(function PropCard({ prop }) {
         'WiFi'
     ];
     const archColor = prop.archColor || 'rgba(212,168,83,0.15)';
+
+    const [ratingData, setRatingData] = useState({ avg: 0, count: 0 });
+
+    useEffect(() => {
+        async function fetchRating() {
+            try {
+                const { data, error } = await supabase
+                    .from('reviews')
+                    .select('rating')
+                    .eq('entity_type', 'property')
+                    .eq('entity_id', prop.id.toString());
+
+                if (!error && data && data.length > 0) {
+                    const avg = data.reduce((acc, r) => acc + r.rating, 0) / data.length;
+                    setRatingData({ avg, count: data.length });
+                }
+            } catch (err) {
+                console.error('Error fetching rating for PropCard:', err);
+            }
+        }
+        fetchRating();
+    }, [prop.id]);
 
     return (
         <div className="card-hover flex flex-col bg-surface overflow-hidden" style={{ borderRadius: '12px', border: '1px solid var(--border)' }}>
@@ -55,6 +79,14 @@ const PropCard = memo(function PropCard({ prop }) {
                 <div className="flex justify-between items-start mb-2">
                     <div>
                         <div className="font-semibold text-textPrimary text-lg mb-0.5">{name}</div>
+                        <div className="flex items-center gap-2 mb-1">
+                            <StarRating rating={Math.round(ratingData.avg)} size={12} />
+                            {ratingData.count > 0 && (
+                                <span className="text-[10px] text-textMuted font-mono">
+                                    {ratingData.avg.toFixed(1)} ({ratingData.count})
+                                </span>
+                            )}
+                        </div>
                         <div className="text-white text-xs font-mono uppercase tracking-wider opacity-90">{location} · Sicilia</div>
                     </div>
                 </div>

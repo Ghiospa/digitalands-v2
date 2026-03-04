@@ -30,7 +30,7 @@ const CARDS = [
             </svg>
         ),
         title: 'Community reale',
-        desc: 'Workspace Slack, eventi locali mensili, altri nomadi nello stesso quartiere. Non sei solo.',
+        desc: 'Community Discord, eventi locali mensili, altri nomadi nello stesso quartiere. Non sei solo.',
     },
 ];
 
