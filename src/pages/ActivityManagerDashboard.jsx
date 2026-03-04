@@ -360,7 +360,7 @@ export default function ActivityManagerDashboard() {
         if (!window.confirm('Sei sicuro di voler eliminare questa attività?')) return;
         await deleteActivity(id);
         refreshList();
-    }, [user.id]);
+    }, [user?.id]);
 
     const handleEdit = useCallback((activity) => {
         setEditItem({

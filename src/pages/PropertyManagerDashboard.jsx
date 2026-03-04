@@ -268,7 +268,7 @@ export default function PropertyManagerDashboard() {
         if (!window.confirm('Sei sicuro di voler eliminare questa proprietà?')) return;
         await deleteProperty(id);
         refreshList();
-    }, [user.id]);
+    }, [user?.id]);
 
     const handleEdit = useCallback((prop) => {
         // Map DB fields back to form names
