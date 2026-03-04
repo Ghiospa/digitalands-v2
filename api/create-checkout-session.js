@@ -1,6 +1,7 @@
 import { stripe } from './_lib/stripe.js';
 import { supabaseAdmin } from './_lib/supabase-admin.js';
 import { getAuthUser } from './_lib/auth.js';
+import { parseBody } from './_lib/body.js';
 
 const PLATFORM_FEE_PERCENT = 0.07;
 
@@ -15,6 +16,9 @@ export default async function handler(req, res) {
             return res.status(401).json({ error: 'Non autenticato.' });
         }
 
+        // Parse body from stream (Vercel non-Next.js does not auto-parse JSON)
+        const body = await parseBody(req);
+
         const {
             propertyId,
             activityId,
@@ -27,10 +31,16 @@ export default async function handler(req, res) {
             totalPrice,
             category,
             emoji,
-        } = req.body;
+        } = body;
 
         if (!totalPrice || totalPrice <= 0) {
             return res.status(400).json({ error: 'Importo non valido.' });
+        }
+        if (!propertyId && !activityId) {
+            return res.status(400).json({ error: 'Proprietà o attività richiesta.' });
+        }
+        if (!checkIn) {
+            return res.status(400).json({ error: 'Data di inizio richiesta.' });
         }
 
         const isProperty = !!propertyId;
@@ -38,7 +48,7 @@ export default async function handler(req, res) {
         const itemName = propertyName || activityName;
         const table = isProperty ? 'properties' : 'activities';
 
-        // Look up owner's Stripe account
+        // Look up owner and their Stripe account
         const { data: item, error: itemError } = await supabaseAdmin
             .from(table)
             .select('owner_id')
@@ -47,6 +57,10 @@ export default async function handler(req, res) {
 
         if (itemError || !item) {
             return res.status(404).json({ error: 'Struttura o attività non trovata.' });
+        }
+
+        if (!item.owner_id) {
+            return res.status(400).json({ error: 'Questa struttura non ha ancora un gestore assegnato.' });
         }
 
         const { data: ownerProfile, error: ownerError } = await supabaseAdmin
@@ -68,7 +82,7 @@ export default async function handler(req, res) {
         const platformFeeCents = Math.round(totalAmountCents * PLATFORM_FEE_PERCENT);
         const managerPayoutCents = totalAmountCents - platformFeeCents;
 
-        // Create pending booking
+        // Create pending booking — all fields including category, emoji, guests
         const bookingData = {
             user_id: user.id,
             property_id: propertyId || null,
@@ -77,11 +91,15 @@ export default async function handler(req, res) {
             activity_name: activityName || null,
             check_in: checkIn,
             check_out: checkOut || null,
+            guests: guests ? Number(guests) : null,
+            months: months ? Number(months) : null,
             total_price: totalPrice,
             status: 'in-attesa',
             payment_status: 'pending',
             platform_fee: platformFeeCents,
             manager_payout: managerPayoutCents,
+            category: category || null,
+            emoji: emoji || null,
         };
 
         const { data: booking, error: bookingError } = await supabaseAdmin
@@ -133,7 +151,7 @@ export default async function handler(req, res) {
             locale: 'it',
         });
 
-        // Link checkout session to booking
+        // Link session ID to booking
         await supabaseAdmin
             .from('bookings')
             .update({ stripe_checkout_session_id: session.id })

@@ -1,6 +1,7 @@
 import { stripe } from './_lib/stripe.js';
 import { supabaseAdmin } from './_lib/supabase-admin.js';
 import { getAuthUser } from './_lib/auth.js';
+import { parseBody } from './_lib/body.js';
 
 export default async function handler(req, res) {
     if (req.method !== 'POST') {
@@ -13,7 +14,10 @@ export default async function handler(req, res) {
             return res.status(401).json({ error: 'Non autenticato.' });
         }
 
-        const { bookingId } = req.body;
+        // Parse body from stream (Vercel non-Next.js does not auto-parse JSON)
+        const body = await parseBody(req);
+        const { bookingId } = body;
+
         if (!bookingId) {
             return res.status(400).json({ error: 'ID prenotazione mancante.' });
         }
@@ -53,7 +57,7 @@ export default async function handler(req, res) {
             });
         }
 
-        // Process refund via Stripe
+        // Process refund via Stripe (reverse transfer + application fee)
         await stripe.refunds.create({
             payment_intent: booking.stripe_payment_intent_id,
             reverse_transfer: true,
@@ -69,7 +73,7 @@ export default async function handler(req, res) {
             })
             .eq('id', bookingId);
 
-        // Update payments audit
+        // Update payments audit table
         await supabaseAdmin
             .from('payments')
             .update({ status: 'refunded' })
@@ -78,6 +82,6 @@ export default async function handler(req, res) {
         return res.status(200).json({ success: true });
     } catch (err) {
         console.error('Refund error:', err);
-        return res.status(500).json({ error: 'Errore nell\'elaborazione del rimborso.' });
+        return res.status(500).json({ error: "Errore nell'elaborazione del rimborso." });
     }
 }
