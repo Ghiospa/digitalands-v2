@@ -163,7 +163,7 @@ export default function Navbar() {
                     {user ? (
                         <div className="flex items-center gap-3">
                             <div className="flex flex-col items-end gap-0">
-                                <Link to="/dashboard" className={`text-[12px] font-medium transition-colors ${scrolled ? 'text-textMuted hover:text-textPrimary' : 'text-white/70 hover:text-white'}`}>
+                                <Link to="/dashboard" className={`text-[12px] font-medium transition-colors ${scrolled ? 'text-textPrimary hover:text-accent' : 'text-white/70 hover:text-white'}`}>
                                     {t('nav_dashboard')}
                                 </Link>
                                 {managerPath && (
@@ -179,14 +179,14 @@ export default function Navbar() {
                                     {user.name?.charAt(0).toUpperCase()}
                                 </div>
                                 <button onClick={handleLogout}
-                                    className={`text-xs transition-colors font-mono ${scrolled ? 'text-textMuted hover:text-textPrimary' : 'text-white/70 hover:text-white'}`}>
+                                    className={`text-xs transition-colors font-mono ${scrolled ? 'text-textPrimary hover:text-accent' : 'text-white/70 hover:text-white'}`}>
                                     {t('nav_logout')}
                                 </button>
                             </div>
                         </div>
                     ) : (
                         <div className="flex items-center gap-4">
-                            <Link to="/auth" className={`text-sm transition-colors ${scrolled ? 'text-textMuted hover:text-textPrimary' : 'text-white/80 hover:text-white'}`}>
+                            <Link to="/auth" className={`text-sm transition-colors ${scrolled ? 'text-textPrimary hover:text-accent' : 'text-white/80 hover:text-white'}`}>
                                 {t('nav_login')}
                             </Link>
                             <Link to="/auth?tab=register" className={`btn-ghost !py-2 !px-4 !text-[13px] ${!scrolled ? 'text-white border-white/20 hover:border-white/40' : ''}`}>
@@ -202,9 +202,9 @@ export default function Navbar() {
                     onClick={() => setMenuOpen(o => !o)}
                     aria-label="Toggle menu"
                 >
-                    <span className={`block w-5 h-px bg-textPrimary transition-all duration-200 ${menuOpen ? 'rotate-45 translate-y-[7px]' : ''}`} />
-                    <span className={`block w-5 h-px bg-textPrimary transition-all duration-200 ${menuOpen ? 'opacity-0' : ''}`} />
-                    <span className={`block w-5 h-px bg-textPrimary transition-all duration-200 ${menuOpen ? '-rotate-45 -translate-y-[7px]' : ''}`} />
+                    <span className={`block w-5 h-px transition-all duration-200 ${scrolled ? 'bg-textPrimary' : 'bg-white'} ${menuOpen ? 'rotate-45 translate-y-[7px]' : ''}`} />
+                    <span className={`block w-5 h-px transition-all duration-200 ${scrolled ? 'bg-textPrimary' : 'bg-white'} ${menuOpen ? 'opacity-0' : ''}`} />
+                    <span className={`block w-5 h-px transition-all duration-200 ${scrolled ? 'bg-textPrimary' : 'bg-white'} ${menuOpen ? '-rotate-45 -translate-y-[7px]' : ''}`} />
                 </button>
             </div>
 
