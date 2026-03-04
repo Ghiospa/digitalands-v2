@@ -89,7 +89,7 @@ export default function ActivityDetail() {
             activityImage: activity.image_url || activity.images?.[0], // Use first image from gallery or fallback
             checkIn: bookingDate,
             guests: guests,
-            price: totalPrice,
+            totalPrice: totalPrice,
             category: activity.category,
             emoji: activity.emoji
         });
@@ -234,11 +234,11 @@ export default function ActivityDetail() {
                                             <div className="pt-6 border-t border-border space-y-2 mb-8">
                                                 <div className="flex justify-between text-sm">
                                                     <span className="text-textMuted">€{activity.price} × {guests}</span>
-                                                    <span className="text-textPrimary">€{total}</span>
+                                                    <span className="text-textPrimary">€{totalPrice}</span>
                                                 </div>
                                                 <div className="flex justify-between text-lg font-serif pt-2">
                                                     <span className="text-textPrimary">Totale</span>
-                                                    <span className="text-accent">€{total}</span>
+                                                    <span className="text-accent">€{totalPrice}</span>
                                                 </div>
                                             </div>
 

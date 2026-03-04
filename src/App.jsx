@@ -130,7 +130,6 @@ export default function App() {
                         <AuthProvider>
                             <BookingProvider>
                                 <CartDrawer />
-                                <HeaderWrapper />
                                 <div style={{ background: 'var(--bg)', minHeight: '100vh' }}>
                                     <Navbar />
                                     <OnboardingOverlay />
