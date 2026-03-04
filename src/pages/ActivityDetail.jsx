@@ -5,6 +5,7 @@ import { useBookings } from '../context/BookingContext';
 import { supabase } from '../lib/supabase';
 import StarRating from '../components/StarRating';
 import ReviewSection from '../components/ReviewSection';
+import ImageGallery from '../components/ImageGallery';
 import { useI18n } from '../context/I18nContext';
 
 export default function ActivityDetail() {
@@ -26,7 +27,10 @@ export default function ActivityDetail() {
             setLoading(true);
             const { data, error } = await supabase
                 .from('activities')
-                .select('*')
+                .select(`
+                    *,
+                    owner:profiles!activities_owner_id_fkey(name, stripe_charges_enabled)
+                `)
                 .eq('id', id)
                 .single();
 
@@ -114,11 +118,11 @@ export default function ActivityDetail() {
                 <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-12">
                     {/* LEFT — Activity info */}
                     <div>
-                        <div className="rounded-xl overflow-hidden mb-8 shadow-2xl" style={{ height: '400px' }}>
-                            <img
-                                src={activity.image_url || activity.image}
+                        {/* Image Gallery */}
+                        <div className="mb-12">
+                            <ImageGallery
+                                images={activity.images?.length > 0 ? activity.images : [activity.image_url]}
                                 alt={activity.name}
-                                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                             />
                         </div>
 

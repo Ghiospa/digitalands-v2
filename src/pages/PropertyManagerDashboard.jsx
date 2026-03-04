@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useI18n } from '../context/I18nContext';
 import { supabase } from '../lib/supabase';
 import StripeConnectButton from '../components/StripeConnectButton';
+import ImageUploadGroup from '../components/ImageUploadGroup';
 
 const RAGUSA_COMUNI = [
     'Ragusa', 'Modica', 'Scicli', 'Vittoria', 'Comiso',
@@ -21,7 +22,7 @@ const AMENITIES_LIST = [
 async function getMyProperties(userId) {
     const { data, error } = await supabase
         .from('properties')
-        .select('id, owner_id, name, location, price_per_night, image_url, description, specs, published, created_at, comune')
+        .select('id, owner_id, name, location, price_per_night, image_url, images, description, specs, published, created_at, comune')
         .eq('owner_id', userId)
         .order('created_at', { ascending: false });
 
@@ -45,7 +46,7 @@ const PropertyForm = memo(function PropertyForm({ user, onSaved, editItem }) {
     const { t } = useI18n();
     const empty = {
         name: '', location: 'Ragusa', description: '',
-        pricePerNight: '', image: '', amenities: [],
+        pricePerNight: '', image: '', images: [], amenities: [],
         rooms: '', maxGuests: '', published: true,
     };
     const [form, setForm] = useState(editItem ? {
@@ -68,9 +69,10 @@ const PropertyForm = memo(function PropertyForm({ user, onSaved, editItem }) {
             owner_id: user.id,
             name: form.name,
             location: form.location,
-            comune: form.location, // In the dashboard form, 'location' seems to be used for Comune selection
+            comune: form.location,
             price_per_night: Number(form.pricePerNight),
-            image_url: form.image || 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80',
+            image_url: form.images?.[0] || 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80',
+            images: form.images || [],
             description: form.description,
             specs: form.amenities,
             published: form.published,
@@ -156,9 +158,12 @@ const PropertyForm = memo(function PropertyForm({ user, onSaved, editItem }) {
                     </div>
 
                     <div style={{ gridColumn: '1 / -1' }}>
-                        <label style={labelStyle}>URL Immagine</label>
-                        <input style={inputStyle} type="url" value={form.image} placeholder="https://images.unsplash.com/..."
-                            onChange={e => setForm(f => ({ ...f, image: e.target.value }))} />
+                        <label style={labelStyle}>Immagini della struttura (min 1, max 6)</label>
+                        <ImageUploadGroup
+                            bucket="properties"
+                            initialImages={form.images}
+                            onChange={(newImages) => setForm(f => ({ ...f, images: newImages }))}
+                        />
                     </div>
                 </div>
 
@@ -275,6 +280,7 @@ export default function PropertyManagerDashboard() {
         setEditItem({
             ...prop,
             image: prop.image_url,
+            images: prop.images || (prop.image_url ? [prop.image_url] : []),
             amenities: prop.specs || [],
             pricePerNight: prop.price_per_night
         });

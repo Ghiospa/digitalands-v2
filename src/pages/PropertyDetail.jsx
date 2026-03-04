@@ -2,9 +2,11 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useBookings } from '../context/BookingContext';
+import { useI18n } from '../context/I18nContext'; // Added
 
 import { SEED_PROPERTIES } from '../data/seedProperties';
 import ReviewSection from '../components/ReviewSection';
+import ImageGallery from '../components/ImageGallery'; // Added
 
 import { supabase } from '../lib/supabase';
 import StarRating from '../components/StarRating';
@@ -347,7 +349,10 @@ export default function PropertyDetail() {
             // 2. Check Supabase
             const { data, error } = await supabase
                 .from('properties')
-                .select('*')
+                .select(`
+                    *,
+                    owner:profiles!properties_owner_id_fkey(name, stripe_charges_enabled)
+                `)
                 .eq('id', id)
                 .single();
 
@@ -355,6 +360,7 @@ export default function PropertyDetail() {
                 setProperty({
                     ...data,
                     img: data.image_url,
+                    images: data.images || [], // Added images field
                     pricePerNight: data.price_per_night,
                     amenities: data.specs || [],
                     type: 'custom'
@@ -397,30 +403,12 @@ export default function PropertyDetail() {
                 <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-12">
                     {/* LEFT — Property info */}
                     <div>
-                        {/* Hero image */}
-                        <div className="rounded-lg mb-8 relative overflow-hidden"
-                            style={{ height: '340px' }}>
-                            <img
-                                src={property.img}
+                        {/* Image Gallery */}
+                        <div className="mb-12">
+                            <ImageGallery
+                                images={property.images?.length > 0 ? property.images : [property.image_url]}
                                 alt={property.name}
-                                style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
                             />
-                            {/* gradient overlay */}
-                            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(10,10,10,0.8) 0%, rgba(10,10,10,0.15) 60%, transparent 100%)' }} />
-                            {/* Arch accent */}
-                            <div style={{
-                                position: 'absolute', bottom: '-20px', left: '50%',
-                                transform: 'translateX(-50%)', width: '140px', height: '200px',
-                                borderRadius: '70px 70px 0 0',
-                                background: property.archColor || 'rgba(212,168,83,0.18)',
-                                border: `1px solid ${(property.archColor || 'rgba(212,168,83,0.18)').replace(/[\d.]+\)$/, '0.4)')}`,
-                                mixBlendMode: 'screen',
-                            }} />
-                            {/* WiFi badge */}
-                            <div className="absolute top-4 right-4 font-mono text-[10px] tracking-widest uppercase px-3 py-1.5 rounded"
-                                style={{ background: 'rgba(10,10,10,0.65)', border: '1px solid rgba(212,168,83,0.3)', color: 'var(--accent)', backdropFilter: 'blur(6px)' }}>
-                                WiFi Certified ✓
-                            </div>
                         </div>
 
                         {/* Title */}

@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useI18n } from '../context/I18nContext';
 import { supabase } from '../lib/supabase';
 import StripeConnectButton from '../components/StripeConnectButton';
+import ImageUploadGroup from '../components/ImageUploadGroup';
 
 const RAGUSA_COMUNI = [
     'Ragusa', 'Modica', 'Scicli', 'Vittoria', 'Comiso',
@@ -29,7 +30,7 @@ const DEFAULT_SLOTS = ['09:00', '11:00', '14:00', '16:00'];
 async function getMyActivities(userId) {
     const { data, error } = await supabase
         .from('activities')
-        .select('id, owner_id, title, category, price, description, image_url, published, created_at, slots')
+        .select('id, owner_id, title, category, price, description, image_url, images, published, created_at, slots')
         .eq('owner_id', userId)
         .order('created_at', { ascending: false });
 
@@ -54,7 +55,7 @@ const ActivityForm = memo(function ActivityForm({ user, onSaved, editItem }) {
     const empty = {
         name: '', category: 'Surf', description: '', price: '',
         duration: '', location: 'Ragusa', slots: [...DEFAULT_SLOTS],
-        image: '', published: true,
+        image: '', images: [], published: true,
     };
     const [form, setForm] = useState(editItem ? {
         ...editItem, price: String(editItem.price),
@@ -82,7 +83,8 @@ const ActivityForm = memo(function ActivityForm({ user, onSaved, editItem }) {
             category: form.category,
             price: Number(form.price),
             description: form.description,
-            image_url: form.image || CAT_IMAGES[form.category] || CAT_IMAGES['Altro'],
+            image_url: form.images?.[0] || CAT_IMAGES[form.category] || CAT_IMAGES['Altro'],
+            images: form.images || [],
             published: form.published,
             duration: form.duration,
             location: form.location,
@@ -143,10 +145,13 @@ const ActivityForm = memo(function ActivityForm({ user, onSaved, editItem }) {
                         {RAGUSA_COMUNI.map(c => <option key={c}>{c}</option>)}
                     </select>
                 </div>
-                <div>
-                    <label style={labelStyle}>URL Immagine (opzionale)</label>
-                    <input style={inputStyle} type="url" value={form.image} placeholder="https://..."
-                        onChange={e => setForm(f => ({ ...f, image: e.target.value }))} />
+                <div style={{ gridColumn: 'span 2' }}>
+                    <label style={labelStyle}>Immagini dell'attività (min 1, max 6)</label>
+                    <ImageUploadGroup
+                        bucket="activities"
+                        initialImages={form.images}
+                        onChange={(newImages) => setForm(f => ({ ...f, images: newImages }))}
+                    />
                 </div>
             </div>
 
@@ -366,7 +371,8 @@ export default function ActivityManagerDashboard() {
         setEditItem({
             ...activity,
             name: activity.title,
-            image: activity.image_url
+            image: activity.image_url,
+            images: activity.images || (activity.image_url ? [activity.image_url] : [])
         });
         setActiveTab('new');
     }, []);
