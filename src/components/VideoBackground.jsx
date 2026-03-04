@@ -36,8 +36,7 @@ export default function VideoBackground({ src, overlayOpacity = 0.6, className =
             <div
                 className="absolute inset-0"
                 style={{
-                    background: `rgba(0, 0, 0, ${overlayOpacity})`,
-                    backdropFilter: 'blur(1px)' // Reduced blur for clearer view
+                    background: `rgba(0, 0, 0, ${overlayOpacity})`
                 }}
             />
 
