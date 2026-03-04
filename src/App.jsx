@@ -34,6 +34,7 @@ const BlogPage = lazy(() => import('./pages/BlogPage'));
 const ActivityDetail = lazy(() => import('./pages/ActivityDetail'));
 const BlogPostDetail = lazy(() => import('./pages/BlogPostDetail'));
 const BackendDiagnostic = lazy(() => import('./pages/BackendDiagnostic'));
+const StripeOnboarding = lazy(() => import('./pages/StripeOnboarding'));
 
 function LandingPage() {
     useEffect(() => {
@@ -150,6 +151,7 @@ export default function App() {
                                             <Route path="/blog" element={<BlogPage />} />
                                             <Route path="/blog/:slug" element={<BlogPostDetail />} />
                                             <Route path="/debug/backend" element={<BackendDiagnostic />} />
+                                            <Route path="/manager/stripe-onboarding" element={<StripeOnboarding />} />
                                             {/* Fallback */}
                                             <Route path="*" element={<LandingPage />} />
                                         </Routes>

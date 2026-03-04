@@ -91,6 +91,16 @@ const TRANSLATIONS = {
         rev_success: 'Recensione inviata con successo!',
         rev_login: 'Accedi per lasciare una recensione',
         rev_rating: 'Valutazione',
+        // Payments
+        pay_success: 'Pagamento completato con successo!',
+        pay_cancelled: 'Pagamento annullato.',
+        pay_redirect: 'Reindirizzamento al pagamento...',
+        pay_refund: 'Cancella e rimborsa',
+        pay_status_paid: 'Pagato',
+        pay_status_pending: 'In attesa',
+        pay_status_refunded: 'Rimborsato',
+        stripe_connect: 'Configura pagamenti',
+        stripe_connected: 'Pagamenti attivi',
     },
     en: {
         nav_how: 'How it works',
@@ -168,6 +178,16 @@ const TRANSLATIONS = {
         rev_success: 'Review submitted successfully!',
         rev_login: 'Login to leave a review',
         rev_rating: 'Rating',
+        // Payments
+        pay_success: 'Payment completed successfully!',
+        pay_cancelled: 'Payment cancelled.',
+        pay_redirect: 'Redirecting to payment...',
+        pay_refund: 'Cancel and refund',
+        pay_status_paid: 'Paid',
+        pay_status_pending: 'Pending',
+        pay_status_refunded: 'Refunded',
+        stripe_connect: 'Set up payments',
+        stripe_connected: 'Payments active',
     },
     es: {
         nav_how: 'Cómo funciona',

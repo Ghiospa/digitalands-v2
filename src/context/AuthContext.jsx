@@ -35,7 +35,7 @@ export function AuthProvider({ children }) {
         console.log('Fetching profile for user:', authUser.id);
         const { data, error } = await supabase
             .from('profiles')
-            .select('id, name, role, employment_type, profession, vat_number, company_name, company_role, stats_metadata, onboarded, is_premium')
+            .select('id, name, role, employment_type, profession, vat_number, company_name, company_role, stats_metadata, onboarded, is_premium, stripe_account_id, stripe_onboarding_complete, stripe_charges_enabled')
             .eq('id', authUser.id)
             .single();
 

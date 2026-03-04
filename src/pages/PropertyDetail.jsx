@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useBookings } from '../context/BookingContext';
 
 import { SEED_PROPERTIES } from '../data/seedProperties';
+import ReviewSection from '../components/ReviewSection';
 
 import { supabase } from '../lib/supabase';
 import StarRating from '../components/StarRating';
@@ -97,9 +98,10 @@ function BookingSidebar({ property }) {
     const [checkIn, setCheckIn] = useState(null);
     const [guests, setGuests] = useState(1);
     const [months, setMonths] = useState(1);
-    const [step, setStep] = useState('select'); // select | confirm | done
+    const [step, setStep] = useState('select'); // select | confirm | paying | done
     const [toast, setToast] = useState('');
 
+    const isSeedProperty = !property.owner_id;
     const pricePerNight = property.pricePerNight || (property.price ? parseInt(String(property.price).replace(/[^\d]/g, '')) : 80);
     const cleaningFee = property.cleaningFee || 50;
     const deposit = property.deposit || 100;
@@ -118,10 +120,11 @@ function BookingSidebar({ property }) {
         setStep('confirm');
     }
 
-    function handleConfirm() {
+    async function handleConfirm() {
+        setStep('paying');
         const checkOut = new Date(checkIn);
         checkOut.setMonth(checkOut.getMonth() + months);
-        addBooking({
+        const result = await addBooking({
             propertyId: property.id,
             propertyName: property.name,
             location: property.location,
@@ -129,12 +132,14 @@ function BookingSidebar({ property }) {
             checkOut: checkOut.toISOString(),
             guests,
             months,
-            pricePerMonth: property.pricePerMonth,
-            cleaningFee: property.cleaningFee,
             totalPrice: total,
-            deposit: property.deposit,
         });
-        setStep('done');
+        if (result?.error) {
+            setToast(result.error);
+            setTimeout(() => setToast(''), 5000);
+            setStep('confirm');
+        }
+        // If redirecting, the page will navigate to Stripe Checkout
     }
 
     if (step === 'done') {
@@ -146,11 +151,21 @@ function BookingSidebar({ property }) {
                         <path d="M5 13l4 4L19 7" stroke="var(--accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                 </div>
-                <div className="font-serif text-xl text-textPrimary mb-2">Prenotazione confermata!</div>
-                <p className="text-sm text-textMuted mb-5">Il tuo soggiorno è stato salvato. Trovi tutti i dettagli nella tua dashboard.</p>
+                <div className="font-serif text-xl text-textPrimary mb-2">Pagamento completato!</div>
+                <p className="text-sm text-textMuted mb-5">La tua prenotazione è confermata. Trovi tutti i dettagli nella tua dashboard.</p>
                 <Link to="/dashboard" className="btn-gold block text-center" style={{ padding: '12px' }}>
                     Vai alla dashboard →
                 </Link>
+            </div>
+        );
+    }
+
+    if (step === 'paying') {
+        return (
+            <div className="rounded-lg p-6 text-center" style={{ background: 'var(--surface)', border: '1px solid var(--border-light)' }}>
+                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-accent mx-auto mb-4"></div>
+                <div className="text-sm text-textPrimary font-medium mb-1">Reindirizzamento al pagamento...</div>
+                <p className="text-xs text-textMuted">Verrai portato su Stripe per completare il pagamento in sicurezza.</p>
             </div>
         );
     }
@@ -184,7 +199,7 @@ function BookingSidebar({ property }) {
                 </div>
                 <div className="px-5 pb-5 flex gap-2">
                     <button onClick={() => setStep('select')} className="btn-ghost flex-1" style={{ fontSize: '0.85rem', padding: '11px' }}>← Modifica</button>
-                    <button onClick={handleConfirm} className="btn-gold flex-1" style={{ fontSize: '0.85rem', padding: '11px' }}>Conferma →</button>
+                    <button onClick={handleConfirm} className="btn-gold flex-1" style={{ fontSize: '0.85rem', padding: '11px' }}>Paga e conferma →</button>
                 </div>
             </div>
         );
@@ -264,11 +279,19 @@ function BookingSidebar({ property }) {
                     </div>
                 )}
 
-                <button onClick={handleBook} className="btn-gold w-full" style={{ padding: '14px', fontSize: '0.9rem' }}>
-                    {user ? 'Prenota ora →' : 'Accedi per prenotare →'}
-                </button>
+                {isSeedProperty ? (
+                    <button disabled className="btn-gold w-full opacity-50 cursor-not-allowed" style={{ padding: '14px', fontSize: '0.9rem' }}>
+                        Disponibile a breve
+                    </button>
+                ) : (
+                    <button onClick={handleBook} className="btn-gold w-full" style={{ padding: '14px', fontSize: '0.9rem' }}>
+                        {user ? 'Prenota ora →' : 'Accedi per prenotare →'}
+                    </button>
+                )}
 
-                <p className="text-xs text-textMuted text-center font-mono">Cancellazione gratuita entro 48h</p>
+                <p className="text-xs text-textMuted text-center font-mono">
+                    {isSeedProperty ? 'Prenotazione online in arrivo' : 'Cancellazione gratuita entro 48h'}
+                </p>
             </div>
         </div>
     );

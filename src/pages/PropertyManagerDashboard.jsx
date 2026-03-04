@@ -3,6 +3,7 @@ import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useI18n } from '../context/I18nContext';
 import { supabase } from '../lib/supabase';
+import StripeConnectButton from '../components/StripeConnectButton';
 
 const RAGUSA_COMUNI = [
     'Ragusa', 'Modica', 'Scicli', 'Vittoria', 'Comiso',
@@ -267,7 +268,7 @@ export default function PropertyManagerDashboard() {
         if (!window.confirm('Sei sicuro di voler eliminare questa proprietà?')) return;
         await deleteProperty(id);
         refreshList();
-    }, [user.id]);
+    }, [user?.id]);
 
     const handleEdit = useCallback((prop) => {
         // Map DB fields back to form names
@@ -327,6 +328,26 @@ export default function PropertyManagerDashboard() {
                         </button>
                     </div>
                 </div>
+
+                {/* Stripe Connect Banner */}
+                {!user.stripe_charges_enabled && (
+                    <div style={{
+                        padding: '16px 20px', borderRadius: '8px', marginBottom: '24px',
+                        border: '1px solid rgba(212,168,83,0.2)', background: 'var(--accent-dim)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px',
+                    }}>
+                        <div>
+                            <div style={{ fontSize: '11px', fontFamily: 'monospace', letterSpacing: '0.08em', color: 'var(--accent)', marginBottom: '4px' }}>PAGAMENTI</div>
+                            <div style={{ fontSize: '0.85rem', color: 'var(--text-primary)' }}>Configura il tuo account Stripe per ricevere pagamenti dalle prenotazioni.</div>
+                        </div>
+                        <StripeConnectButton />
+                    </div>
+                )}
+                {user.stripe_charges_enabled && (
+                    <div style={{ marginBottom: '16px' }}>
+                        <StripeConnectButton />
+                    </div>
+                )}
 
                 {/* Stats */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '32px' }}>

@@ -449,15 +449,19 @@ export default function ActivitiesPage() {
     }
 
     async function handleConfirm({ activity, date }) {
-        return await addBooking({
+        const result = await addBooking({
             activityId: activity.id,
             activityName: activity.name,
             category: activity.category,
             emoji: activity.emoji,
             checkIn: date,
-            price: activity.price,
-            status: 'confermata',
+            totalPrice: activity.price,
         });
+        if (result?.error) {
+            alert(result.error);
+        }
+        // If redirecting to Stripe, the page navigates away
+        setBookingActivity(null);
     }
 
     return (

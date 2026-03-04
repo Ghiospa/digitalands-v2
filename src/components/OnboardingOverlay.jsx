@@ -9,22 +9,21 @@ export default function OnboardingOverlay() {
     const [loading, setLoading] = useState(false);
     const [data, setData] = useState({});
 
-    // If no user or onboarding already done, return null
-    if (!user || user.onboarded) {
-        return null;
-    }
+    if (!user) return null;
+
+    // Check DB flag OR localStorage fallback (resilient even without migrations)
+    const localKey = `onboarded_${user.id}`;
+    if (user.onboarded || localStorage.getItem(localKey) === 'true') return null;
 
     const handleComplete = async () => {
         setLoading(true);
-        const { error } = await updateProfile({
+        // Mark locally immediately so overlay won't reappear on next render
+        localStorage.setItem(localKey, 'true');
+        await updateProfile({
             onboarded: true,
             stats_metadata: { ...data, completed_at: new Date().toISOString() }
         });
         setLoading(false);
-        if (error) {
-            console.error('Onboarding save error:', error);
-            alert('Errore nel salvataggio. Per favore riprova.');
-        }
     };
 
     const roles = {

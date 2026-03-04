@@ -1,10 +1,27 @@
-import { useState, memo, useMemo } from 'react';
-import { Navigate, Link, useNavigate } from 'react-router-dom';
+import { useState, useEffect, memo, useMemo } from 'react';
+import { Navigate, Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useBookings } from '../context/BookingContext';
 import { useI18n } from '../context/I18nContext';
 import DigitalCard from '../components/DigitalCard';
 import { CAT_COLORS } from '../data/categories';
+
+const PaymentBadge = memo(function PaymentBadge({ paymentStatus }) {
+    const map = {
+        paid: { label: 'Pagato', color: '#4ade80', bg: 'rgba(74,222,128,0.08)', border: 'rgba(74,222,128,0.2)' },
+        pending: { label: 'In attesa', color: 'var(--accent)', bg: 'var(--accent-dim)', border: 'rgba(212,168,83,0.2)' },
+        refunded: { label: 'Rimborsato', color: '#60a5fa', bg: 'rgba(96,165,250,0.08)', border: 'rgba(96,165,250,0.2)' },
+        failed: { label: 'Fallito', color: '#f87171', bg: 'rgba(248,113,113,0.08)', border: 'rgba(248,113,113,0.2)' },
+    };
+    if (!paymentStatus) return null;
+    const s = map[paymentStatus] || map.pending;
+    return (
+        <span className="font-mono text-[10px] tracking-widest uppercase px-2.5 py-1 rounded"
+            style={{ color: s.color, background: s.bg, border: `1px solid ${s.border}` }}>
+            {s.label}
+        </span>
+    );
+});
 
 const StatusBadge = memo(function StatusBadge({ status }) {
     const map = {
@@ -33,7 +50,10 @@ const BookingCard = memo(function BookingCard({ booking, onCancel }) {
                     <div className="font-medium text-textPrimary mb-0.5">{booking.propertyName || booking.property_name}</div>
                     <div className="text-xs text-textMuted font-mono">{booking.location}</div>
                 </div>
-                <StatusBadge status={booking.status} />
+                <div className="flex flex-col items-end gap-1">
+                    <StatusBadge status={booking.status} />
+                    <PaymentBadge paymentStatus={booking.payment_status} />
+                </div>
             </div>
 
             <div className="grid grid-cols-3 gap-3 mb-4">
@@ -57,9 +77,14 @@ const BookingCard = memo(function BookingCard({ booking, onCancel }) {
                     Rivedi struttura →
                 </Link>
                 {booking.status === 'confermata' && isUpcoming && (
-                    <button onClick={() => onCancel(booking.id)}
+                    <button onClick={() => {
+                        const msg = booking.payment_status === 'paid'
+                            ? 'Sei sicuro? Il rimborso sarà elaborato entro 5-10 giorni lavorativi.'
+                            : 'Sei sicuro di voler cancellare?';
+                        if (window.confirm(msg)) onCancel(booking.id);
+                    }}
                         className="text-xs text-textMuted hover:text-red-400 transition-colors font-mono">
-                        Cancella
+                        {booking.payment_status === 'paid' ? 'Cancella e rimborsa' : 'Cancella'}
                     </button>
                 )}
             </div>
@@ -237,6 +262,21 @@ export default function Dashboard() {
     const { user, logout, updateProfile, loading } = useAuth();
     const { getUserBookings, cancelBooking } = useBookings();
     const [activeTab, setActiveTab] = useState('bookings');
+    const [searchParams, setSearchParams] = useSearchParams();
+    const [paymentToast, setPaymentToast] = useState('');
+
+    useEffect(() => {
+        const payment = searchParams.get('payment');
+        if (payment === 'success') {
+            setPaymentToast('Pagamento completato con successo! La tua prenotazione è confermata.');
+            setSearchParams({}, { replace: true });
+            setTimeout(() => setPaymentToast(''), 6000);
+        } else if (payment === 'cancelled') {
+            setPaymentToast('Pagamento annullato. Puoi riprovare dalla tua dashboard.');
+            setSearchParams({}, { replace: true });
+            setTimeout(() => setPaymentToast(''), 6000);
+        }
+    }, []);
 
     const bookings = getUserBookings();
 
@@ -281,6 +321,18 @@ export default function Dashboard() {
     return (
         <div className="min-h-screen pt-20 pb-20 px-6 md:px-10">
             <div className="max-w-content mx-auto">
+                {/* Payment toast */}
+                {paymentToast && (
+                    <div className="mb-6 p-4 rounded-lg text-sm font-mono text-center"
+                        style={{
+                            background: paymentToast.includes('successo') ? 'rgba(74,222,128,0.08)' : 'rgba(212,168,83,0.08)',
+                            border: `1px solid ${paymentToast.includes('successo') ? 'rgba(74,222,128,0.2)' : 'rgba(212,168,83,0.2)'}`,
+                            color: paymentToast.includes('successo') ? '#4ade80' : 'var(--accent)',
+                        }}>
+                        {paymentToast}
+                    </div>
+                )}
+
                 {/* Premium Banner */}
                 {user.is_premium && (
                     <div className="mb-8 p-6 rounded-xl animate-fade-in" style={{ background: 'linear-gradient(90deg, #5865F2 0%, #4752C4 100%)', boxShadow: '0 8px 30px rgba(88, 101, 242, 0.25)' }}>
@@ -424,6 +476,6 @@ export default function Dashboard() {
                     </div>
                 )}
             </div>
-        </div>
+        </div >
     );
 }
