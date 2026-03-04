@@ -148,7 +148,7 @@ const DigitalCard = memo(function DigitalCard() {
                             fontFamily: "'Unbounded', sans-serif", fontSize: '1.4rem', fontWeight: 700, color: roleColor,
                             border: `1px solid ${roleColor}50`, flexShrink: 0,
                         }}>
-                            {user.name.charAt(0).toUpperCase()}
+                            {user.name?.charAt(0).toUpperCase() || '?'}
                         </div>
                         <div>
                             <div style={{ fontFamily: "'Unbounded', sans-serif", fontWeight: 700, fontSize: '0.95rem', color: '#F0F0F0', lineHeight: 1.2, marginBottom: '4px' }}>
