@@ -3,8 +3,6 @@ import { supabaseAdmin } from './_lib/supabase-admin.js';
 import { getAuthUser } from './_lib/auth.js';
 import { parseBody } from './_lib/body.js';
 
-const PLATFORM_FEE_PERCENT = 0.07;
-
 export default async function handler(req, res) {
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method not allowed' });
@@ -16,146 +14,132 @@ export default async function handler(req, res) {
             return res.status(401).json({ error: 'Non autenticato.' });
         }
 
-        // Parse body from stream (Vercel non-Next.js does not auto-parse JSON)
         const body = await parseBody(req);
+        const { items, totals } = body;
 
-        const {
-            propertyId,
-            activityId,
-            propertyName,
-            activityName,
-            checkIn,
-            checkOut,
-            guests,
-            months,
-            totalPrice,
-            category,
-            emoji,
-        } = body;
-
-        if (!totalPrice || totalPrice <= 0) {
-            return res.status(400).json({ error: 'Importo non valido.' });
-        }
-        if (!propertyId && !activityId) {
-            return res.status(400).json({ error: 'Proprietà o attività richiesta.' });
-        }
-        if (!checkIn) {
-            return res.status(400).json({ error: 'Data di inizio richiesta.' });
+        if (!items || !items.length) {
+            return res.status(400).json({ error: 'Il carrello è vuoto.' });
         }
 
-        const isProperty = !!propertyId;
-        const itemId = propertyId || activityId;
-        const itemName = propertyName || activityName;
-        const table = isProperty ? 'properties' : 'activities';
+        // 1. Create Line Items for Stripe
+        const line_items = items.map(item => {
+            const isProperty = !!item.propertyId;
+            const description = isProperty
+                ? `Soggiorno: ${item.checkIn?.slice(0, 10)} → ${item.checkOut?.slice(0, 10)}`
+                : `Attività: ${item.checkIn?.slice(0, 10)}`;
 
-        // Look up owner and their Stripe account
-        const { data: item, error: itemError } = await supabaseAdmin
-            .from(table)
-            .select('owner_id')
-            .eq('id', itemId)
-            .single();
-
-        if (itemError || !item) {
-            return res.status(404).json({ error: 'Struttura o attività non trovata.' });
-        }
-
-        if (!item.owner_id) {
-            return res.status(400).json({ error: 'Questa struttura non ha ancora un gestore assegnato.' });
-        }
-
-        const { data: ownerProfile, error: ownerError } = await supabaseAdmin
-            .from('profiles')
-            .select('stripe_account_id, stripe_charges_enabled')
-            .eq('id', item.owner_id)
-            .single();
-
-        if (ownerError || !ownerProfile?.stripe_account_id) {
-            return res.status(400).json({ error: 'Il gestore non ha ancora configurato i pagamenti.' });
-        }
-
-        if (!ownerProfile.stripe_charges_enabled) {
-            return res.status(400).json({ error: 'Il gestore non ha completato la configurazione dei pagamenti.' });
-        }
-
-        // Calculate fees in cents
-        const totalAmountCents = Math.round(totalPrice * 100);
-        const platformFeeCents = Math.round(totalAmountCents * PLATFORM_FEE_PERCENT);
-        const managerPayoutCents = totalAmountCents - platformFeeCents;
-
-        // Create pending booking — all fields including category, emoji, guests
-        const bookingData = {
-            user_id: user.id,
-            property_id: propertyId || null,
-            activity_id: activityId || null,
-            property_name: propertyName || null,
-            activity_name: activityName || null,
-            check_in: checkIn,
-            check_out: checkOut || null,
-            guests: guests ? Number(guests) : null,
-            months: months ? Number(months) : null,
-            total_price: totalPrice,
-            status: 'in-attesa',
-            payment_status: 'pending',
-            platform_fee: platformFeeCents,
-            manager_payout: managerPayoutCents,
-            category: category || null,
-            emoji: emoji || null,
-        };
-
-        const { data: booking, error: bookingError } = await supabaseAdmin
-            .from('bookings')
-            .insert([bookingData])
-            .select()
-            .single();
-
-        if (bookingError) {
-            console.error('Booking insert error:', bookingError);
-            return res.status(500).json({ error: 'Errore nella creazione della prenotazione.' });
-        }
-
-        // Create Stripe Checkout Session
-        const siteUrl = process.env.VITE_SITE_URL || 'https://digitalands-v2.vercel.app';
-
-        const description = isProperty
-            ? `Soggiorno: ${checkIn?.slice(0, 10)} → ${checkOut?.slice(0, 10)}`
-            : `Attività: ${checkIn?.slice(0, 10)}`;
-
-        const session = await stripe.checkout.sessions.create({
-            mode: 'payment',
-            payment_method_types: ['card'],
-            line_items: [{
+            return {
                 price_data: {
                     currency: 'eur',
                     product_data: {
-                        name: itemName || 'Prenotazione Digitalands',
+                        name: item.propertyName || item.activityName || 'Prenotazione Digitalands',
                         description,
                     },
-                    unit_amount: totalAmountCents,
+                    unit_amount: Math.round(item.totalPrice * 100),
                 },
                 quantity: 1,
-            }],
-            payment_intent_data: {
-                application_fee_amount: platformFeeCents,
-                transfer_data: {
-                    destination: ownerProfile.stripe_account_id,
+            };
+        });
+
+        // 2. Add Platform Service Fee (10%)
+        if (totals.platformFee > 0) {
+            line_items.push({
+                price_data: {
+                    currency: 'eur',
+                    product_data: {
+                        name: 'Costi di servizio piattaforma (10%)',
+                        description: 'Commissione per la gestione della prenotazione e supporto 24/7',
+                    },
+                    unit_amount: Math.round(totals.platformFee * 100),
                 },
-            },
-            metadata: {
-                booking_id: booking.id,
+                quantity: 1,
+            });
+        }
+
+        // 3. Add Digital Membership Card if needed
+        if (totals.membershipFee > 0) {
+            line_items.push({
+                price_data: {
+                    currency: 'eur',
+                    product_data: {
+                        name: 'Digital Membership Card',
+                        description: 'Accesso esclusivo ai vantaggi per Nomadi Digitali in Sicilia',
+                    },
+                    unit_amount: Math.round(totals.membershipFee * 100),
+                },
+                quantity: 1,
+            });
+        }
+
+        // 4. Create Bookings in Supabase (Pending)
+        const bookingIds = [];
+        for (const item of items) {
+            const isProperty = !!item.propertyId;
+            const table = isProperty ? 'properties' : 'activities';
+
+            // Get owner details
+            const { data: dbItem } = await supabaseAdmin
+                .from(table)
+                .select('owner_id')
+                .eq('id', item.propertyId || item.activityId)
+                .single();
+
+            const bookingData = {
                 user_id: user.id,
-                owner_id: item.owner_id,
-                type: isProperty ? 'property' : 'activity',
+                property_id: item.propertyId || null,
+                activity_id: item.activityId || null,
+                property_name: item.propertyName || null,
+                activity_name: item.activityName || null,
+                check_in: item.checkIn,
+                check_out: item.checkOut || null,
+                guests: item.guests ? Number(item.guests) : null,
+                months: item.months ? Number(item.months) : null,
+                total_price: item.totalPrice,
+                status: 'in-attesa',
+                payment_status: 'pending',
+                platform_fee: Math.round(item.totalPrice * 0.10 * 100), // Individual fee for reporting
+                manager_payout: Math.round(item.totalPrice * 0.90 * 100),
+                category: item.category || null,
+                emoji: item.emoji || null,
+            };
+
+            const { data: booking, error: bookingError } = await supabaseAdmin
+                .from('bookings')
+                .insert([bookingData])
+                .select()
+                .single();
+
+            if (!bookingError) {
+                bookingIds.push(booking.id);
+            }
+        }
+
+        // 5. Create Stripe Checkout Session
+        const siteUrl = process.env.VITE_SITE_URL || 'https://digitalands-v2.vercel.app';
+
+        // Note: For multi-owner carts, we collect all funds on the platform first.
+        // Direct payouts will be handled via a separate dashboard/process to allow split verification.
+        const session = await stripe.checkout.sessions.create({
+            mode: 'payment',
+            payment_method_types: ['card'],
+            line_items,
+            metadata: {
+                booking_ids: bookingIds.join(','),
+                user_id: user.id,
+                has_membership: totals.membershipFee > 0 ? 'true' : 'false',
             },
-            success_url: `${siteUrl}/dashboard?payment=success&booking_id=${booking.id}`,
-            cancel_url: `${siteUrl}/dashboard?payment=cancelled&booking_id=${booking.id}`,
+            success_url: `${siteUrl}/dashboard?payment=success&bookings=${bookingIds.join(',')}`,
+            cancel_url: `${siteUrl}/dashboard?payment=cancelled`,
             locale: 'it',
         });
 
-        // Link session ID to booking
-        await supabaseAdmin
-            .from('bookings')
-            .update({ stripe_checkout_session_id: session.id })
-            .eq('id', booking.id);
+        // 6. Link session to all created bookings
+        if (bookingIds.length > 0) {
+            await supabaseAdmin
+                .from('bookings')
+                .update({ stripe_checkout_session_id: session.id })
+                .in('id', bookingIds);
+        }
 
         return res.status(200).json({ sessionUrl: session.url });
     } catch (err) {

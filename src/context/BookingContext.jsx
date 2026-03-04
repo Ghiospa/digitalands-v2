@@ -8,6 +8,11 @@ const BookingContext = createContext(null);
 export function BookingProvider({ children }) {
     const { user } = useAuth();
     const [bookings, setBookings] = useState([]);
+    const [cart, setCart] = useState(() => {
+        const saved = localStorage.getItem('digitalands_cart');
+        return saved ? JSON.parse(saved) : [];
+    });
+    const [isCartOpen, setIsCartOpen] = useState(false);
     const [loading, setLoading] = useState(false);
     const [paymentLoading, setPaymentLoading] = useState(false);
 
@@ -18,6 +23,10 @@ export function BookingProvider({ children }) {
             setBookings([]);
         }
     }, [user]);
+
+    useEffect(() => {
+        localStorage.setItem('digitalands_cart', JSON.stringify(cart));
+    }, [cart]);
 
     async function fetchUserBookings() {
         setLoading(true);
@@ -33,23 +42,45 @@ export function BookingProvider({ children }) {
         setLoading(false);
     }
 
-    async function addBooking(booking) {
-        if (!user) return { error: 'Devi essere loggato per prenotare.' };
+    const cartTotals = useMemo(() => {
+        const itemsTotal = cart.reduce((acc, item) => acc + (Number(item.totalPrice) || 0), 0);
+        const platformFee = itemsTotal * 0.10; // 10% Platform fee
+        const needsMembership = user && !user.is_premium;
+        const membershipFee = needsMembership ? 9.90 : 0;
+
+        return {
+            itemsTotal,
+            platformFee,
+            membershipFee,
+            total: itemsTotal + platformFee + membershipFee
+        };
+    }, [cart, user]);
+
+    function addToCart(item) {
+        // Prevent duplicates for the same property stay if needed, 
+        // but for now we just append.
+        setCart(prev => [...prev, { ...item, cartId: Math.random().toString(36).substr(2, 9) }]);
+        setIsCartOpen(true);
+    }
+
+    function removeFromCart(cartId) {
+        setCart(prev => prev.filter(item => item.cartId !== cartId));
+    }
+
+    function clearCart() {
+        setCart([]);
+    }
+
+    async function processCheckout() {
+        if (!user) return { error: 'Devi essere loggato per procedere.' };
+        if (cart.length === 0) return { error: 'Il carrello è vuoto.' };
 
         setPaymentLoading(true);
         try {
+            // prepare items for the backend
             const { sessionUrl } = await createCheckoutSession({
-                propertyId: booking.propertyId || null,
-                activityId: booking.activityId || null,
-                propertyName: booking.propertyName || null,
-                activityName: booking.activityName || null,
-                checkIn: booking.checkIn,
-                checkOut: booking.checkOut || null,
-                guests: booking.guests,
-                months: booking.months,
-                totalPrice: Number(booking.totalPrice || booking.price),
-                category: booking.category || null,
-                emoji: booking.emoji || null,
+                items: cart,
+                totals: cartTotals
             });
 
             // Redirect to Stripe Checkout
@@ -57,14 +88,13 @@ export function BookingProvider({ children }) {
             return { redirecting: true };
         } catch (err) {
             setPaymentLoading(false);
-            return { error: err.message };
+            console.error('Checkout error:', err);
+            return { error: err.message || 'Errore nel processare il pagamento.' };
         }
     }
 
     async function cancelBooking(bookingId) {
         const booking = bookings.find(b => b.id === bookingId);
-
-        // If paid, process refund via Stripe
         if (booking?.payment_status === 'paid') {
             try {
                 await refundBookingApi(bookingId);
@@ -80,7 +110,6 @@ export function BookingProvider({ children }) {
             }
         }
 
-        // If pending/no payment, just cancel directly
         const { error } = await supabase
             .from('bookings')
             .update({ status: 'cancellata' })
@@ -94,18 +123,20 @@ export function BookingProvider({ children }) {
         return { error };
     }
 
-    function getUserBookings() {
-        return bookings;
-    }
-
     const value = useMemo(() => ({
         bookings,
-        addBooking,
+        cart,
+        addToCart,
+        removeFromCart,
+        clearCart,
+        cartTotals,
+        isCartOpen,
+        setIsCartOpen,
+        processCheckout,
         cancelBooking,
-        getUserBookings,
         loading,
         paymentLoading
-    }), [bookings, loading, paymentLoading]);
+    }), [bookings, cart, isCartOpen, cartTotals, loading, paymentLoading]);
 
     return (
         <BookingContext.Provider value={value}>

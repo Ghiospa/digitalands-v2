@@ -12,7 +12,7 @@ export default function ActivityDetail() {
     const { id } = useParams();
     const navigate = useNavigate();
     const { user } = useAuth();
-    const { addBooking } = useBookings();
+    const { addToCart } = useBookings();
     const { t } = useI18n();
 
     const [activity, setActivity] = useState(null);
@@ -21,6 +21,7 @@ export default function ActivityDetail() {
     const [bookingDate, setBookingDate] = useState('');
     const [bookingStatus, setBookingStatus] = useState('idle'); // idle | loading | success | error
     const [bookingError, setBookingError] = useState(null);
+    const [step, setStep] = useState('select'); // 'select' or 'confirm'
 
     useEffect(() => {
         async function fetchActivity() {
@@ -69,13 +70,28 @@ export default function ActivityDetail() {
         if (!bookingDate) return;
 
         setBookingStatus('loading');
-        const res = await addBooking({
+        // This part is now for confirming the selection before adding to cart
+        setStep('confirm');
+        setBookingStatus('idle'); // Reset status for the confirmation step
+    }
+
+    async function handleConfirm() {
+        if (!user) {
+            navigate(`/auth?redirect=/activity/${id}`);
+            return;
+        }
+        if (!bookingDate) return;
+
+        setBookingStatus('loading');
+        const res = await addToCart({
             activityId: activity.id,
             activityName: activity.name,
+            activityImage: activity.image_url || activity.images?.[0], // Use first image from gallery or fallback
             checkIn: bookingDate,
             guests: guests,
             price: totalPrice,
-            status: 'confermata',
+            category: activity.category,
+            emoji: activity.emoji
         });
 
         if (res.error) {
@@ -182,58 +198,87 @@ export default function ActivityDetail() {
                             {bookingStatus === 'success' ? (
                                 <div className="text-center py-6">
                                     <div className="text-4xl mb-4">✅</div>
-                                    <h4 className="font-serif text-xl mb-2">Prenotazione confermata!</h4>
-                                    <p className="text-sm text-textMuted mb-6">Controlla la tua dashboard per i dettagli.</p>
                                     <Link to="/dashboard" className="btn-gold w-full text-center py-3 block">Vai alla Dashboard</Link>
                                 </div>
                             ) : (
-                                <form onSubmit={handleBook}>
-                                    <div className="mb-6">
-                                        <label className="text-xs font-mono tracking-widest uppercase text-textMuted block mb-2">Seleziona Data</label>
-                                        <input
-                                            type="date"
-                                            className="waitlist-input mb-4"
-                                            value={bookingDate}
-                                            onChange={(e) => setBookingDate(e.target.value)}
-                                            required
-                                            min={new Date().toISOString().split('T')[0]}
-                                        />
+                                <>
+                                    {step === 'select' ? (
+                                        <>
+                                            <div className="space-y-4 mb-8">
+                                                <div>
+                                                    <label className="text-[10px] font-mono text-textMuted uppercase tracking-widest block mb-2">Seleziona Data</label>
+                                                    <select
+                                                        value={bookingDate}
+                                                        onChange={(e) => setBookingDate(e.target.value)}
+                                                        className="w-full bg-surface-2 border border-border-light rounded-lg px-4 py-3 text-sm text-textPrimary focus:border-accent outline-none"
+                                                    >
+                                                        <option value="">Scegli una data...</option>
+                                                        {activity.slots?.map(slot => (
+                                                            <option key={slot.id} value={slot.start_time}>
+                                                                {new Date(slot.start_time).toLocaleDateString('it-IT', { weekday: 'short', day: '2-digit', month: 'long', hour: '2-digit', minute: '2-digit' })}
+                                                            </option>
+                                                        ))}
+                                                    </select>
+                                                </div>
 
-                                        <label className="text-xs font-mono tracking-widest uppercase text-textMuted block mb-2">Partecipanti</label>
-                                        <div className="flex items-center gap-4 p-2 bg-var(--surface-2) rounded border border-var(--border-light)">
-                                            <button type="button" onClick={() => setGuests(g => Math.max(1, g - 1))} className="w-8 h-8 rounded-full border border-var(--border) text-textPrimary flex items-center justify-center hover:border-accent transition-colors">−</button>
-                                            <span className="font-mono text-lg">{guests}</span>
-                                            <button type="button" onClick={() => setGuests(g => g + 1)} className="w-8 h-8 rounded-full border border-var(--border) text-textPrimary flex items-center justify-center hover:border-accent transition-colors">+</button>
-                                        </div>
-                                    </div>
+                                                <div>
+                                                    <label className="text-[10px] font-mono text-textMuted uppercase tracking-widest block mb-1">Partecipanti</label>
+                                                    <div className="flex items-center gap-4">
+                                                        <button onClick={() => setGuests(g => Math.max(1, g - 1))} className="w-10 h-10 rounded-lg border border-border-light flex items-center justify-center text-textMuted hover:text-accent hover:border-accent transition-all">−</button>
+                                                        <span className="font-mono text-textPrimary">{guests}</span>
+                                                        <button onClick={() => setGuests(g => Math.min(10, g + 1))} className="w-10 h-10 rounded-lg border border-border-light flex items-center justify-center text-textMuted hover:text-accent hover:border-accent transition-all">+</button>
+                                                    </div>
+                                                </div>
+                                            </div>
 
-                                    <div className="border-t pt-4 mb-6" style={{ borderColor: 'var(--border)' }}>
-                                        <div className="flex justify-between items-center mb-2">
-                                            <span className="text-sm text-textMuted">{guests}x Partecipanti</span>
-                                            <span className="text-sm text-textPrimary">€{totalPrice}</span>
-                                        </div>
-                                        <div className="flex justify-between items-center pt-2 border-t" style={{ borderColor: 'var(--border)' }}>
-                                            <span className="font-medium">Totale</span>
-                                            <span className="font-bold text-accent text-lg">€{totalPrice}</span>
-                                        </div>
-                                    </div>
+                                            <div className="pt-6 border-t border-border space-y-2 mb-8">
+                                                <div className="flex justify-between text-sm">
+                                                    <span className="text-textMuted">€{activity.price} × {guests}</span>
+                                                    <span className="text-textPrimary">€{total}</span>
+                                                </div>
+                                                <div className="flex justify-between text-lg font-serif pt-2">
+                                                    <span className="text-textPrimary">Totale</span>
+                                                    <span className="text-accent">€{total}</span>
+                                                </div>
+                                            </div>
 
-                                    {bookingStatus === 'error' && (
-                                        <div className="text-xs text-red-400 mb-4">❌ {bookingError}</div>
+                                            {bookingStatus === 'error' && (
+                                                <div className="text-xs text-red-400 mb-4">❌ {bookingError}</div>
+                                            )}
+
+                                            <button
+                                                onClick={() => {
+                                                    if (!bookingDate) {
+                                                        alert('Seleziona una data per continuare.');
+                                                        return;
+                                                    }
+                                                    setStep('confirm');
+                                                }}
+                                                className="btn-gold w-full py-4 text-sm uppercase tracking-widest font-bold"
+                                                disabled={bookingStatus === 'loading'}
+                                            >
+                                                {bookingStatus === 'loading' ? 'ELABORAZIONE...' : 'PRENOTA ORA →'}
+                                            </button>
+                                        </>
+                                    ) : (
+                                        <div className="animate-fade-in">
+                                            <div className="mb-6 pb-6 border-b border-border">
+                                                <h4 className="font-serif text-lg text-textPrimary mb-4">Riepilogo</h4>
+                                                <div className="space-y-2 text-sm">
+                                                    <div className="flex justify-between"><span className="text-textMuted">Data:</span> <span className="text-textPrimary font-mono">{new Date(bookingDate).toLocaleDateString('it-IT', { day: '2-digit', month: 'short' })}</span></div>
+                                                    <div className="flex justify-between"><span className="text-textMuted">Partecipanti:</span> <span className="text-textPrimary font-mono">{guests}</span></div>
+                                                </div>
+                                            </div>
+                                            <div className="flex gap-2">
+                                                <button onClick={() => setStep('select')} className="btn-ghost flex-1 py-3 text-xs">Indietro</button>
+                                                <button onClick={handleConfirm} className="btn-gold flex-1 py-3 text-xs">Agg. Carrello</button>
+                                            </div>
+                                        </div>
                                     )}
-
-                                    <button
-                                        type="submit"
-                                        className="btn-gold w-full py-4 text-sm font-bold tracking-widest uppercase"
-                                        disabled={bookingStatus === 'loading'}
-                                    >
-                                        {bookingStatus === 'loading' ? 'ELABORAZIONE...' : 'PRENOTA ORA →'}
-                                    </button>
-
                                     <p className="text-[10px] text-textMuted text-center mt-4 font-mono">
                                         PAGAMENTO SICURO · CANCELLAZIONE ENTRO 24H
                                     </p>
-                                </form>
+                                </>
                             )}
                         </div>
                     </div>

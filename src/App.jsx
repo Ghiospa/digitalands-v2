@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 
 import { AuthProvider } from './context/AuthContext';
 import { BookingProvider } from './context/BookingContext';
+import CartDrawer from './components/CartDrawer';
 import { I18nProvider } from './context/I18nContext';
 import { ThemeProvider } from './context/ThemeContext';
 
@@ -128,6 +129,8 @@ export default function App() {
                     <I18nProvider>
                         <AuthProvider>
                             <BookingProvider>
+                                <CartDrawer />
+                                <HeaderWrapper />
                                 <div style={{ background: 'var(--bg)', minHeight: '100vh' }}>
                                     <Navbar />
                                     <OnboardingOverlay />

@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useBookings } from '../context/BookingContext';
 import { useI18n, LANGS } from '../context/I18nContext';
 import { useTheme } from '../context/ThemeContext';
 
@@ -101,6 +102,7 @@ export default function Navbar() {
     const [scrolled, setScrolled] = useState(false);
     const [menuOpen, setMenuOpen] = useState(false);
     const { user, logout } = useAuth();
+    const { cart, setIsCartOpen } = useBookings();
     const { t } = useI18n();
     const navigate = useNavigate();
     const location = useLocation();
@@ -193,11 +195,26 @@ export default function Navbar() {
                             <Link to="/auth" className={`text-sm transition-colors ${(scrolled || !isOverlayPage) ? 'text-textPrimary hover:text-accent' : 'text-white/80 hover:text-white'}`}>
                                 {t('nav_login')}
                             </Link>
-                            <Link to="/auth?tab=register" className={`btn-ghost !py-2 !px-4 !text-[13px] ${!scrolled ? 'text-white border-white/20 hover:border-white/40' : ''}`}>
+                            <Link to="/auth?tab=register" className={`btn-gold !py-2 !px-4 !text-[13px] ${!scrolled ? 'text-black' : ''}`}>
                                 {t('nav_register')}
                             </Link>
                         </div>
                     )}
+
+                    {/* Cart Toggle */}
+                    <button
+                        onClick={() => setIsCartOpen(true)}
+                        className={`relative p-2 ml-2 transition-colors duration-200 ${(scrolled || !isOverlayPage) ? 'text-textPrimary hover:text-accent' : 'text-white/90 hover:text-white'}`}
+                    >
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M9 20a1 1 0 100 2 1 1 0 000-2zm7 0a1 1 0 100 2 1 1 0 000-2zm.25-3H6.75L5 2H2v2h2l1 9h13v-2H7l-.11-1h12.36l1.5-7H5.5" />
+                        </svg>
+                        {cart.length > 0 && (
+                            <span className="absolute top-0 right-0 w-4 h-4 bg-accent text-black text-[10px] font-bold rounded-full flex items-center justify-center animate-bounce-subtle">
+                                {cart.length}
+                            </span>
+                        )}
+                    </button>
                 </div>
 
                 {/* Mobile toggle */}
@@ -237,6 +254,12 @@ export default function Navbar() {
                         <a href="/#partners" onClick={() => setMenuOpen(false)} className="text-lg font-serif text-textPrimary hover:text-accent transition-colors">
                             {t('nav_partners')}
                         </a>
+                        <button
+                            onClick={() => { setIsCartOpen(true); setMenuOpen(false); }}
+                            className="flex items-center gap-3 text-lg font-serif text-accent"
+                        >
+                            🛒 Carrello ({cart.length})
+                        </button>
                     </nav>
 
                     <div className="pt-5 border-t border-border-light flex flex-col gap-4">
@@ -276,7 +299,8 @@ export default function Navbar() {
                         )}
                     </div>
                 </div>
-            )}
-        </nav>
+            )
+            }
+        </nav >
     );
 }

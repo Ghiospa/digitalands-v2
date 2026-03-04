@@ -93,7 +93,7 @@ function MiniCalendar({ selected, onSelect }) {
 
 function BookingSidebar({ property }) {
     const { user } = useAuth();
-    const { addBooking } = useBookings();
+    const { addToCart } = useBookings();
     const navigate = useNavigate();
 
     const [checkIn, setCheckIn] = useState(null);
@@ -122,25 +122,24 @@ function BookingSidebar({ property }) {
     }
 
     async function handleConfirm() {
-        setStep('paying');
         const checkOut = new Date(checkIn);
         checkOut.setMonth(checkOut.getMonth() + months);
-        const result = await addBooking({
+
+        addToCart({
             propertyId: property.id,
             propertyName: property.name,
+            propertyImage: property.img || property.image_url,
             location: property.location,
             checkIn: checkIn.toISOString(),
             checkOut: checkOut.toISOString(),
             guests,
             months,
             totalPrice: total,
+            category: 'Stay',
+            emoji: '🏡'
         });
-        if (result?.error) {
-            setToast(result.error);
-            setTimeout(() => setToast(''), 5000);
-            setStep('confirm');
-        }
-        // If redirecting, the page will navigate to Stripe Checkout
+
+        setStep('select'); // Reset step for future additions if needed
     }
 
     if (step === 'done') {
@@ -200,7 +199,7 @@ function BookingSidebar({ property }) {
                 </div>
                 <div className="px-5 pb-5 flex gap-2">
                     <button onClick={() => setStep('select')} className="btn-ghost flex-1" style={{ fontSize: '0.85rem', padding: '11px' }}>← Modifica</button>
-                    <button onClick={handleConfirm} className="btn-gold flex-1" style={{ fontSize: '0.85rem', padding: '11px' }}>Paga e conferma →</button>
+                    <button onClick={handleConfirm} className="btn-gold flex-1" style={{ fontSize: '0.85rem', padding: '11px' }}>Aggiungi al carrello →</button>
                 </div>
             </div>
         );
