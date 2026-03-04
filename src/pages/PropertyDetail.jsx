@@ -8,7 +8,6 @@ import ReviewSection from '../components/ReviewSection';
 
 import { supabase } from '../lib/supabase';
 import StarRating from '../components/StarRating';
-import ReviewSection from '../components/ReviewSection';
 
 function getSeedPropertyById(id) {
     return SEED_PROPERTIES.find(p => p.id === id);
