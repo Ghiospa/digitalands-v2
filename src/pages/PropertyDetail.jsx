@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useBookings } from '../context/BookingContext';
 
 import { SEED_PROPERTIES } from '../data/seedProperties';
+import ReviewsSection from '../components/ReviewsSection';
 
 import { supabase } from '../lib/supabase';
 
@@ -89,7 +90,7 @@ function MiniCalendar({ selected, onSelect }) {
 
 function BookingSidebar({ property }) {
     const { user } = useAuth();
-    const { addBooking, paymentLoading } = useBookings();
+    const { addBooking } = useBookings();
     const navigate = useNavigate();
 
     const [checkIn, setCheckIn] = useState(null);
@@ -461,6 +462,9 @@ export default function PropertyDetail() {
                                 ))}
                             </ul>
                         </div>
+
+                        {/* Reviews */}
+                        <ReviewsSection propertyId={property.id} />
                     </div>
 
                     {/* RIGHT — Booking sidebar */}
