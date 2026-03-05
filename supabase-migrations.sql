@@ -2,10 +2,12 @@
 -- Digitalands v2 - Complete Migrations
 -- Run in Supabase SQL Editor — ALL idempotent
 -- ============================================
+-- Schema verified against real DB on 2026-03-05
+-- ============================================
 
 -- ─── PROFILES ─────────────────────────────────────────────────────
 
--- 1. Add onboarding + Stripe Connect fields
+-- 1. Add onboarding + Stripe Connect fields (safe if already exist)
 ALTER TABLE profiles
 ADD COLUMN IF NOT EXISTS onboarded BOOLEAN DEFAULT FALSE,
 ADD COLUMN IF NOT EXISTS stripe_account_id TEXT DEFAULT NULL,
@@ -18,7 +20,7 @@ ADD COLUMN IF NOT EXISTS stripe_charges_enabled BOOLEAN DEFAULT FALSE;
 ALTER TABLE properties
 ADD COLUMN IF NOT EXISTS published BOOLEAN DEFAULT TRUE;
 
--- 3. Public read policy (anon users can browse published properties)
+-- 3. Public read policy
 ALTER TABLE properties ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "Public read published properties" ON properties;
@@ -41,19 +43,37 @@ CREATE POLICY "Managers delete own properties"
     ON properties FOR DELETE
     USING (auth.uid() = owner_id);
 
+-- Also allow managers to read their own unpublished properties
+DROP POLICY IF EXISTS "Managers read own properties" ON properties;
+CREATE POLICY "Managers read own properties"
+    ON properties FOR SELECT
+    USING (auth.uid() = owner_id);
+
 -- ─── ACTIVITIES ───────────────────────────────────────────────────
+-- Real schema already has: id(text), owner_id(uuid), title, name, category,
+-- price, description, image_url, published, created_at, duration, emoji,
+-- meeting_point, meeting_point_url, images(text[])
+-- MISSING: slots, location
 
--- 4. Ensure published column exists
+-- 4. Add missing columns
 ALTER TABLE activities
-ADD COLUMN IF NOT EXISTS published BOOLEAN DEFAULT TRUE;
+ADD COLUMN IF NOT EXISTS published BOOLEAN DEFAULT FALSE,
+ADD COLUMN IF NOT EXISTS slots JSONB DEFAULT '[]',
+ADD COLUMN IF NOT EXISTS location TEXT DEFAULT NULL;
 
--- 5. Public read policy for activities
+-- 5. Activity RLS policies
 ALTER TABLE activities ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "Public read published activities" ON activities;
 CREATE POLICY "Public read published activities"
     ON activities FOR SELECT
     USING (published = true);
+
+-- Managers can read ALL their own activities (including unpublished)
+DROP POLICY IF EXISTS "Managers read own activities" ON activities;
+CREATE POLICY "Managers read own activities"
+    ON activities FOR SELECT
+    USING (auth.uid() = owner_id);
 
 DROP POLICY IF EXISTS "Managers insert own activities" ON activities;
 CREATE POLICY "Managers insert own activities"
@@ -71,23 +91,22 @@ CREATE POLICY "Managers delete own activities"
     USING (auth.uid() = owner_id);
 
 -- ─── BOOKINGS ─────────────────────────────────────────────────────
+-- Real schema already has: id(uuid), user_id, property_id(uuid),
+-- activity_id(uuid), property_name, activity_name, check_in(date),
+-- check_out(date), total_price, status, created_at,
+-- stripe_checkout_session_id, stripe_payment_intent_id,
+-- payment_status, platform_fee, manager_payout
+-- MISSING: category, emoji, guests, months, time_slot
 
--- 6. Add Stripe payment tracking fields
-ALTER TABLE bookings
-ADD COLUMN IF NOT EXISTS stripe_checkout_session_id TEXT DEFAULT NULL,
-ADD COLUMN IF NOT EXISTS stripe_payment_intent_id TEXT DEFAULT NULL,
-ADD COLUMN IF NOT EXISTS payment_status TEXT DEFAULT 'pending',
-ADD COLUMN IF NOT EXISTS platform_fee INTEGER DEFAULT 0,
-ADD COLUMN IF NOT EXISTS manager_payout INTEGER DEFAULT 0;
-
--- 7. Add booking metadata fields
+-- 6. Add missing booking metadata fields
 ALTER TABLE bookings
 ADD COLUMN IF NOT EXISTS category TEXT DEFAULT NULL,
 ADD COLUMN IF NOT EXISTS emoji TEXT DEFAULT NULL,
 ADD COLUMN IF NOT EXISTS guests INTEGER DEFAULT NULL,
-ADD COLUMN IF NOT EXISTS months INTEGER DEFAULT NULL;
+ADD COLUMN IF NOT EXISTS months INTEGER DEFAULT NULL,
+ADD COLUMN IF NOT EXISTS time_slot TEXT DEFAULT NULL;
 
--- 8. Bookings RLS
+-- 7. Bookings RLS
 ALTER TABLE bookings ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "Users read own bookings" ON bookings;
@@ -95,11 +114,22 @@ CREATE POLICY "Users read own bookings"
     ON bookings FOR SELECT
     USING (user_id = auth.uid());
 
+-- Managers can read bookings for their activities
+-- Note: cast activity_id (uuid) to text to compare with activities.id (text)
+DROP POLICY IF EXISTS "Managers read activity bookings" ON bookings;
+CREATE POLICY "Managers read activity bookings"
+    ON bookings FOR SELECT
+    USING (
+        activity_id::text IN (
+            SELECT id FROM activities WHERE owner_id = auth.uid()
+        )
+    );
+
 -- Service role (API) handles INSERT/UPDATE — bypasses RLS by default
 
 -- ─── PAYMENTS ─────────────────────────────────────────────────────
 
--- 9. Payments audit table
+-- 8. Payments audit table
 CREATE TABLE IF NOT EXISTS payments (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     booking_id UUID REFERENCES bookings(id) ON DELETE SET NULL,
@@ -128,24 +158,8 @@ CREATE POLICY "Guests read own payments"
     USING (guest_user_id = auth.uid());
 
 -- ─── REVIEWS ──────────────────────────────────────────────────────
-
--- 10. Reviews table (properties + activities)
--- Drop and recreate to ensure correct schema (safe: CASCADE drops dependent objects)
-DROP TABLE IF EXISTS reviews CASCADE;
-CREATE TABLE reviews (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    property_id TEXT REFERENCES properties(id) ON DELETE CASCADE,
-    activity_id TEXT REFERENCES activities(id) ON DELETE CASCADE,
-    user_id UUID NOT NULL,
-    user_name TEXT,
-    rating INTEGER NOT NULL CHECK (rating BETWEEN 1 AND 5),
-    comment TEXT,
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    CONSTRAINT reviews_one_target CHECK (
-        (property_id IS NOT NULL AND activity_id IS NULL) OR
-        (property_id IS NULL AND activity_id IS NOT NULL)
-    )
-);
+-- Real schema uses entity_type + entity_id (polymorphic pattern)
+-- DO NOT drop or recreate — just ensure RLS policies exist
 
 ALTER TABLE reviews ENABLE ROW LEVEL SECURITY;
 
@@ -161,53 +175,17 @@ CREATE POLICY "Users insert own reviews"
 
 -- ─── INDEXES ──────────────────────────────────────────────────────
 
--- 11. Performance indexes
+-- 9. Performance indexes
 CREATE INDEX IF NOT EXISTS idx_properties_owner ON properties(owner_id);
 CREATE INDEX IF NOT EXISTS idx_properties_published ON properties(published);
 CREATE INDEX IF NOT EXISTS idx_activities_owner ON activities(owner_id);
 CREATE INDEX IF NOT EXISTS idx_activities_published ON activities(published);
 CREATE INDEX IF NOT EXISTS idx_bookings_user ON bookings(user_id);
+CREATE INDEX IF NOT EXISTS idx_bookings_activity ON bookings(activity_id);
 CREATE INDEX IF NOT EXISTS idx_bookings_checkout ON bookings(stripe_checkout_session_id);
 CREATE INDEX IF NOT EXISTS idx_bookings_payment_intent ON bookings(stripe_payment_intent_id);
 CREATE INDEX IF NOT EXISTS idx_payments_booking ON payments(booking_id);
 CREATE INDEX IF NOT EXISTS idx_payments_guest ON payments(guest_user_id);
 CREATE INDEX IF NOT EXISTS idx_payments_manager ON payments(manager_user_id);
-CREATE INDEX IF NOT EXISTS idx_reviews_property ON reviews(property_id);
-CREATE INDEX IF NOT EXISTS idx_reviews_activity ON reviews(activity_id);
+CREATE INDEX IF NOT EXISTS idx_reviews_entity ON reviews(entity_type, entity_id);
 CREATE INDEX IF NOT EXISTS idx_reviews_user ON reviews(user_id);
-
--- ─── ACTIVITIES — missing columns ─────────────────────────────────
-
--- 12. Add columns that the app uses but weren't in the original CREATE TABLE
-ALTER TABLE activities
-ADD COLUMN IF NOT EXISTS duration TEXT DEFAULT NULL,
-ADD COLUMN IF NOT EXISTS location TEXT DEFAULT NULL,
-ADD COLUMN IF NOT EXISTS slots JSONB DEFAULT '[]',
-ADD COLUMN IF NOT EXISTS emoji TEXT DEFAULT NULL,
-ADD COLUMN IF NOT EXISTS images JSONB DEFAULT '[]';
-
--- 12b. Managers can read all their own activities (including unpublished)
-DROP POLICY IF EXISTS "Managers read own activities" ON activities;
-CREATE POLICY "Managers read own activities"
-    ON activities FOR SELECT
-    USING (auth.uid() = owner_id);
-
--- ─── BOOKINGS — missing columns ───────────────────────────────────
-
--- 13. Activity booking support
-ALTER TABLE bookings
-ADD COLUMN IF NOT EXISTS activity_id TEXT REFERENCES activities(id) ON DELETE SET NULL,
-ADD COLUMN IF NOT EXISTS activity_name TEXT DEFAULT NULL,
-ADD COLUMN IF NOT EXISTS time_slot TEXT DEFAULT NULL;
-
--- 14. Managers can read bookings for their own activities
-DROP POLICY IF EXISTS "Managers read activity bookings" ON bookings;
-CREATE POLICY "Managers read activity bookings"
-    ON bookings FOR SELECT
-    USING (
-        activity_id IN (
-            SELECT id FROM activities WHERE owner_id = auth.uid()
-        )
-    );
-
-CREATE INDEX IF NOT EXISTS idx_bookings_activity ON bookings(activity_id);
