@@ -30,7 +30,7 @@ const DEFAULT_SLOTS = ['09:00', '11:00', '14:00', '16:00'];
 async function getMyActivities(userId) {
     const { data, error } = await supabase
         .from('activities')
-        .select('id, owner_id, title, category, price, description, image_url, images, published, created_at, slots')
+        .select('id, owner_id, title, category, price, description, image_url, images, published, created_at, slots, duration, location, emoji')
         .eq('owner_id', userId)
         .order('created_at', { ascending: false });
 

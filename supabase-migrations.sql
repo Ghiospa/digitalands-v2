@@ -183,7 +183,14 @@ ALTER TABLE activities
 ADD COLUMN IF NOT EXISTS duration TEXT DEFAULT NULL,
 ADD COLUMN IF NOT EXISTS location TEXT DEFAULT NULL,
 ADD COLUMN IF NOT EXISTS slots JSONB DEFAULT '[]',
-ADD COLUMN IF NOT EXISTS emoji TEXT DEFAULT NULL;
+ADD COLUMN IF NOT EXISTS emoji TEXT DEFAULT NULL,
+ADD COLUMN IF NOT EXISTS images JSONB DEFAULT '[]';
+
+-- 12b. Managers can read all their own activities (including unpublished)
+DROP POLICY IF EXISTS "Managers read own activities" ON activities;
+CREATE POLICY "Managers read own activities"
+    ON activities FOR SELECT
+    USING (auth.uid() = owner_id);
 
 -- ─── BOOKINGS — missing columns ───────────────────────────────────
 
