@@ -134,8 +134,8 @@ CREATE POLICY "Guests read own payments"
 DROP TABLE IF EXISTS reviews CASCADE;
 CREATE TABLE reviews (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    property_id UUID REFERENCES properties(id) ON DELETE CASCADE,
-    activity_id UUID REFERENCES activities(id) ON DELETE CASCADE,
+    property_id TEXT REFERENCES properties(id) ON DELETE CASCADE,
+    activity_id TEXT REFERENCES activities(id) ON DELETE CASCADE,
     user_id UUID NOT NULL,
     user_name TEXT,
     rating INTEGER NOT NULL CHECK (rating BETWEEN 1 AND 5),
@@ -196,7 +196,7 @@ CREATE POLICY "Managers read own activities"
 
 -- 13. Activity booking support
 ALTER TABLE bookings
-ADD COLUMN IF NOT EXISTS activity_id UUID REFERENCES activities(id) ON DELETE SET NULL,
+ADD COLUMN IF NOT EXISTS activity_id TEXT REFERENCES activities(id) ON DELETE SET NULL,
 ADD COLUMN IF NOT EXISTS activity_name TEXT DEFAULT NULL,
 ADD COLUMN IF NOT EXISTS time_slot TEXT DEFAULT NULL;
 
