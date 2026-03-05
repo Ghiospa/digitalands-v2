@@ -162,40 +162,45 @@ export default function Navbar() {
                 </ul>
 
                 {/* CTA / User area */}
-                <div className="hidden md:flex items-center gap-4">
-                    <ThemeToggle />
-                    <LangSwitcher />
+                <div className="hidden md:flex items-center gap-5">
+                    <div className="flex items-center gap-2">
+                        <ThemeToggle />
+                        <LangSwitcher />
+                    </div>
+
+                    <div className="h-4 w-px bg-border-light opacity-30 mx-1" />
 
                     {user ? (
-                        <div className="flex items-center gap-3">
-                            <div className="flex flex-col items-end gap-0">
-                                <Link to="/dashboard" className={`text-[12px] font-medium transition-colors ${(scrolled || !isOverlayPage) ? 'text-textPrimary hover:text-accent' : 'text-white/70 hover:text-white'}`}>
+                        <div className="flex items-center gap-4">
+                            <div className="flex flex-col items-end leading-[1.2]">
+                                <Link to="/dashboard" className={`text-[12px] font-sans font-medium transition-colors ${(scrolled || !isOverlayPage) ? 'text-textPrimary hover:text-accent' : 'text-white/90 hover:text-white'}`}>
                                     {t('nav_dashboard')}
                                 </Link>
                                 {managerPath && (
                                     <Link to={managerPath}
-                                        className="text-[11px] font-mono font-bold text-accent hover:underline underline-offset-4">
+                                        className="text-[10px] font-mono font-bold text-accent tracking-tighter uppercase">
                                         {t('nav_manager')} ↗
                                     </Link>
                                 )}
                             </div>
-                            <div className="flex items-center gap-2">
-                                <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-bg"
+                            <div className="h-6 w-px bg-border-light opacity-10 mx-0.5" />
+                            <div className="flex items-center gap-3.5">
+                                <Link to="/dashboard" className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-bg shadow-sm hover:scale-105 active:scale-95 transition-all duration-200"
                                     style={{ background: 'var(--accent)' }}>
                                     {user.name?.charAt(0).toUpperCase()}
-                                </div>
+                                </Link>
                                 <button onClick={handleLogout}
-                                    className={`text-xs transition-colors font-mono ${(scrolled || !isOverlayPage) ? 'text-textPrimary hover:text-accent' : 'text-white/70 hover:text-white'}`}>
+                                    className={`text-[10px] font-mono tracking-widest uppercase opacity-40 hover:opacity-100 hover:text-accent transition-all duration-200 ${(scrolled || !isOverlayPage) ? 'text-textPrimary' : 'text-white'}`}>
                                     {t('nav_logout')}
                                 </button>
                             </div>
                         </div>
                     ) : (
                         <div className="flex items-center gap-4">
-                            <Link to="/auth" className={`text-sm transition-colors ${(scrolled || !isOverlayPage) ? 'text-textPrimary hover:text-accent' : 'text-white/80 hover:text-white'}`}>
+                            <Link to="/auth" className={`text-sm font-medium transition-colors ${(scrolled || !isOverlayPage) ? 'text-textPrimary hover:text-accent' : 'text-white/80 hover:text-white'}`}>
                                 {t('nav_login')}
                             </Link>
-                            <Link to="/auth?tab=register" className={`btn-gold !py-2 !px-4 !text-[13px] ${!scrolled ? 'text-black' : ''}`}>
+                            <Link to="/auth?tab=register" className={`btn-gold !py-2 !px-4 !text-[12px] !font-bold tracking-wide ${!scrolled && isOverlayPage ? 'text-black' : ''}`}>
                                 {t('nav_register')}
                             </Link>
                         </div>
@@ -204,13 +209,16 @@ export default function Navbar() {
                     {/* Cart Toggle */}
                     <button
                         onClick={() => setIsCartOpen(true)}
-                        className={`relative p-2 ml-2 transition-colors duration-200 ${(scrolled || !isOverlayPage) ? 'text-textPrimary hover:text-accent' : 'text-white/90 hover:text-white'}`}
+                        className={`relative p-2 transition-colors duration-200 ${(scrolled || !isOverlayPage) ? 'text-textPrimary hover:text-accent' : 'text-white/90 hover:text-white'}`}
+                        aria-label="Open cart"
                     >
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="M9 20a1 1 0 100 2 1 1 0 000-2zm7 0a1 1 0 100 2 1 1 0 000-2zm.25-3H6.75L5 2H2v2h2l1 9h13v-2H7l-.11-1h12.36l1.5-7H5.5" />
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
+                            <line x1="3" y1="6" x2="21" y2="6" />
+                            <path d="M16 10a4 4 0 01-8 0" />
                         </svg>
                         {cart.length > 0 && (
-                            <span className="absolute top-0 right-0 w-4 h-4 bg-accent text-black text-[10px] font-bold rounded-full flex items-center justify-center animate-bounce-subtle">
+                            <span className="absolute -top-1 -right-1 w-4 h-4 bg-accent text-black text-[10px] font-bold rounded-full flex items-center justify-center shadow-lg">
                                 {cart.length}
                             </span>
                         )}

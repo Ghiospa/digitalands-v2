@@ -260,7 +260,7 @@ const ActivityBookingsTab = memo(function ActivityBookingsTab({ bookings, onCanc
 
 export default function Dashboard() {
     const { user, logout, updateProfile, loading } = useAuth();
-    const { getUserBookings, cancelBooking } = useBookings();
+    const { bookings, cancelBooking } = useBookings();
     const [activeTab, setActiveTab] = useState('bookings');
     const [searchParams, setSearchParams] = useSearchParams();
     const [paymentToast, setPaymentToast] = useState('');
@@ -278,7 +278,7 @@ export default function Dashboard() {
         }
     }, []);
 
-    const bookings = getUserBookings();
+    // const bookings = getUserBookings(); // Removed duplicate
 
     const { propertyBookings, activityBookings, upcoming, past } = useMemo(() => {
         const pb = bookings.filter(b => b.property_id);
