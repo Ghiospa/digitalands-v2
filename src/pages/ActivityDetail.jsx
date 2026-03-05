@@ -28,10 +28,7 @@ export default function ActivityDetail() {
             setLoading(true);
             const { data, error } = await supabase
                 .from('activities')
-                .select(`
-                    *,
-                    owner:profiles!activities_owner_id_fkey(name, stripe_charges_enabled)
-                `)
+                .select('*')
                 .eq('id', id)
                 .single();
 
