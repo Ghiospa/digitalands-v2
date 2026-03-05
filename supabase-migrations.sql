@@ -130,7 +130,9 @@ CREATE POLICY "Guests read own payments"
 -- ─── REVIEWS ──────────────────────────────────────────────────────
 
 -- 10. Reviews table (properties + activities)
-CREATE TABLE IF NOT EXISTS reviews (
+-- Drop and recreate to ensure correct schema (safe: CASCADE drops dependent objects)
+DROP TABLE IF EXISTS reviews CASCADE;
+CREATE TABLE reviews (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     property_id UUID REFERENCES properties(id) ON DELETE CASCADE,
     activity_id UUID REFERENCES activities(id) ON DELETE CASCADE,
@@ -173,3 +175,32 @@ CREATE INDEX IF NOT EXISTS idx_payments_manager ON payments(manager_user_id);
 CREATE INDEX IF NOT EXISTS idx_reviews_property ON reviews(property_id);
 CREATE INDEX IF NOT EXISTS idx_reviews_activity ON reviews(activity_id);
 CREATE INDEX IF NOT EXISTS idx_reviews_user ON reviews(user_id);
+
+-- ─── ACTIVITIES — missing columns ─────────────────────────────────
+
+-- 12. Add columns that the app uses but weren't in the original CREATE TABLE
+ALTER TABLE activities
+ADD COLUMN IF NOT EXISTS duration TEXT DEFAULT NULL,
+ADD COLUMN IF NOT EXISTS location TEXT DEFAULT NULL,
+ADD COLUMN IF NOT EXISTS slots JSONB DEFAULT '[]',
+ADD COLUMN IF NOT EXISTS emoji TEXT DEFAULT NULL;
+
+-- ─── BOOKINGS — missing columns ───────────────────────────────────
+
+-- 13. Activity booking support
+ALTER TABLE bookings
+ADD COLUMN IF NOT EXISTS activity_id UUID REFERENCES activities(id) ON DELETE SET NULL,
+ADD COLUMN IF NOT EXISTS activity_name TEXT DEFAULT NULL,
+ADD COLUMN IF NOT EXISTS time_slot TEXT DEFAULT NULL;
+
+-- 14. Managers can read bookings for their own activities
+DROP POLICY IF EXISTS "Managers read activity bookings" ON bookings;
+CREATE POLICY "Managers read activity bookings"
+    ON bookings FOR SELECT
+    USING (
+        activity_id IN (
+            SELECT id FROM activities WHERE owner_id = auth.uid()
+        )
+    );
+
+CREATE INDEX IF NOT EXISTS idx_bookings_activity ON bookings(activity_id);

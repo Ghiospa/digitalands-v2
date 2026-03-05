@@ -55,11 +55,13 @@ const ActivityForm = memo(function ActivityForm({ user, onSaved, editItem }) {
     const empty = {
         name: '', category: 'Surf', description: '', price: '',
         duration: '', location: 'Ragusa', slots: [...DEFAULT_SLOTS],
-        image: '', images: [], published: true,
+        images: [], emoji: '', published: true,
     };
     const [form, setForm] = useState(editItem ? {
         ...editItem, price: String(editItem.price),
         slots: editItem.slots || [...DEFAULT_SLOTS],
+        images: editItem.images || (editItem.image_url ? [editItem.image_url] : []),
+        emoji: editItem.emoji || '',
     } : empty);
     const [newSlot, setNewSlot] = useState('');
     const [saved, setSaved] = useState(false);
@@ -88,7 +90,8 @@ const ActivityForm = memo(function ActivityForm({ user, onSaved, editItem }) {
             published: form.published,
             duration: form.duration,
             location: form.location,
-            slots: form.slots
+            slots: form.slots,
+            emoji: form.emoji || null,
         };
 
         let result;
@@ -152,6 +155,11 @@ const ActivityForm = memo(function ActivityForm({ user, onSaved, editItem }) {
                         initialImages={form.images}
                         onChange={(newImages) => setForm(f => ({ ...f, images: newImages }))}
                     />
+                </div>
+                <div>
+                    <label style={labelStyle}>Emoji</label>
+                    <input style={inputStyle} value={form.emoji} placeholder="Es. 🏄"
+                        onChange={e => setForm(f => ({ ...f, emoji: e.target.value }))} />
                 </div>
             </div>
 
@@ -245,20 +253,24 @@ const MonitorTab = memo(function MonitorTab({ activities, bookings }) {
     const [attendance, setAttendance] = useState(getAttendance());
     const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
 
-    const activeBookings = bookings.filter(b => b.status !== 'cancellata' && b.date === selectedDate);
+    const activeBookings = bookings.filter(b => b.status !== 'cancellata' && b.check_in === selectedDate);
 
     // Group by activity then by slot
     const grouped = activities.reduce((acc, act) => {
-        const actBookings = activeBookings.filter(b => b.activityId === act.id);
+        const actBookings = activeBookings.filter(b => b.activity_id === act.id);
         if (actBookings.length === 0) return acc;
 
-        const slots = act.slots.reduce((sAcc, slot) => {
-            const slotBookings = actBookings.filter(b => b.timeSlot === slot);
+        const slots = (act.slots || []).reduce((sAcc, slot) => {
+            const slotBookings = actBookings.filter(b => b.time_slot === slot);
             if (slotBookings.length > 0) {
                 sAcc[slot] = slotBookings;
             }
             return sAcc;
         }, {});
+
+        // Include bookings without a matching slot
+        const unslotted = actBookings.filter(b => !b.time_slot || !(act.slots || []).includes(b.time_slot));
+        if (unslotted.length > 0) slots['—'] = unslotted;
 
         if (Object.keys(slots).length > 0) {
             acc.push({ ...act, groupedSlots: slots });
@@ -286,9 +298,9 @@ const MonitorTab = memo(function MonitorTab({ activities, bookings }) {
             ) : (
                 grouped.map(act => (
                     <div key={act.id} style={{ background: 'var(--surface)', border: '1px solid var(--border-light)', borderRadius: '12px', overflow: 'hidden' }}>
-                        <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '12px', background: 'var(--surface-2)', opacity: 0.5 }}>
-                            <span style={{ fontSize: '1.2rem' }}>{act.emoji}</span>
-                            <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--text-primary)' }}>{act.name}</div>
+                        <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '12px', background: 'var(--surface-2)' }}>
+                            <span style={{ fontSize: '1.2rem' }}>{act.emoji || '🏄'}</span>
+                            <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--text-primary)' }}>{act.title}</div>
                         </div>
                         <div style={{ padding: '0 20px' }}>
                             {Object.entries(act.groupedSlots).map(([slot, bks]) => (
@@ -337,10 +349,8 @@ export default function ActivityManagerDashboard() {
     const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState('list');
     const [activities, setActivities] = useState([]);
-    const [loadingData, setLoadingData] = useState(true);
     const [editItem, setEditItem] = useState(null);
-
-    const bookings = []; // LocalStorage migration for bookings pending
+    const [bookings, setBookings] = useState([]);
 
     const stats = useMemo(() => ({
         published: activities.filter(a => a.published).length,
@@ -349,16 +359,29 @@ export default function ActivityManagerDashboard() {
     }), [activities, bookings]);
 
     useEffect(() => {
-        if (user) refreshList();
+        if (user) {
+            refreshList();
+            fetchManagerBookings();
+        }
     }, [user]);
 
     async function refreshList() {
-        setLoadingData(true);
         const data = await getMyActivities(user.id);
         setActivities(data);
-        setLoadingData(false);
         setActiveTab('list');
         setEditItem(null);
+    }
+
+    async function fetchManagerBookings() {
+        const { data, error } = await supabase
+            .from('bookings')
+            .select('id, user_id, activity_id, activity_name, check_in, time_slot, total_price, status, payment_status, category, emoji, created_at')
+            .not('activity_id', 'is', null)
+            .order('created_at', { ascending: false });
+
+        if (!error && data) {
+            setBookings(data);
+        }
     }
 
     const handleDelete = useCallback(async (id) => {
@@ -501,15 +524,15 @@ export default function ActivityManagerDashboard() {
                                     <div key={b.id} style={{ background: 'var(--surface)', border: '1px solid var(--border-light)', borderRadius: '10px', padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
                                         <div>
                                             <div style={{ fontWeight: 600, color: 'var(--text-primary)', marginBottom: '4px' }}>
-                                                {b.emoji} {b.activityName}
+                                                {b.emoji} {b.activity_name}
                                             </div>
                                             <div style={{ fontSize: '12px', fontFamily: 'monospace', color: 'var(--text-muted)' }}>
-                                                📅 {new Date(b.date + 'T12:00:00').toLocaleDateString('it-IT', { day: '2-digit', month: 'short', year: '2-digit' })}
-                                                {b.timeSlot && ` · ⏱ ${b.timeSlot}`}
+                                                📅 {new Date(b.check_in + 'T12:00:00').toLocaleDateString('it-IT', { day: '2-digit', month: 'short', year: '2-digit' })}
+                                                {b.time_slot && ` · ⏱ ${b.time_slot}`}
                                             </div>
                                         </div>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                            <span style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--accent)' }}>€{b.price}</span>
+                                            <span style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--accent)' }}>€{b.total_price}</span>
                                             <span style={{
                                                 fontSize: '10px', fontFamily: 'monospace', letterSpacing: '0.08em', textTransform: 'uppercase',
                                                 padding: '3px 10px', borderRadius: '4px',

@@ -3,6 +3,8 @@ import { supabaseAdmin } from './_lib/supabase-admin.js';
 import { getAuthUser } from './_lib/auth.js';
 import { parseBody } from './_lib/body.js';
 
+const PLATFORM_FEE_PERCENT = 0.07;
+
 export default async function handler(req, res) {
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method not allowed' });
@@ -74,16 +76,6 @@ export default async function handler(req, res) {
         // 4. Create Bookings in Supabase (Pending)
         const bookingIds = [];
         for (const item of items) {
-            const isProperty = !!item.propertyId;
-            const table = isProperty ? 'properties' : 'activities';
-
-            // Get owner details
-            const { data: dbItem } = await supabaseAdmin
-                .from(table)
-                .select('owner_id')
-                .eq('id', item.propertyId || item.activityId)
-                .single();
-
             const bookingData = {
                 user_id: user.id,
                 property_id: item.propertyId || null,
@@ -97,10 +89,11 @@ export default async function handler(req, res) {
                 total_price: item.totalPrice,
                 status: 'in-attesa',
                 payment_status: 'pending',
-                platform_fee: Math.round(item.totalPrice * 0.10 * 100), // Individual fee for reporting
-                manager_payout: Math.round(item.totalPrice * 0.90 * 100),
+                platform_fee: Math.round(item.totalPrice * PLATFORM_FEE_PERCENT * 100),
+                manager_payout: Math.round(item.totalPrice * (1 - PLATFORM_FEE_PERCENT) * 100),
                 category: item.category || null,
                 emoji: item.emoji || null,
+                time_slot: item.timeSlot || null,
             };
 
             const { data: booking, error: bookingError } = await supabaseAdmin
@@ -111,14 +104,18 @@ export default async function handler(req, res) {
 
             if (!bookingError) {
                 bookingIds.push(booking.id);
+            } else {
+                console.error('Booking insert error:', bookingError);
             }
+        }
+
+        if (bookingIds.length === 0) {
+            return res.status(500).json({ error: 'Errore nella creazione delle prenotazioni.' });
         }
 
         // 5. Create Stripe Checkout Session
         const siteUrl = process.env.VITE_SITE_URL || 'https://digitalands-v2.vercel.app';
 
-        // Note: For multi-owner carts, we collect all funds on the platform first.
-        // Direct payouts will be handled via a separate dashboard/process to allow split verification.
         const session = await stripe.checkout.sessions.create({
             mode: 'payment',
             payment_method_types: ['card'],

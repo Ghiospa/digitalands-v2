@@ -7,110 +7,10 @@ import StarRating from '../components/StarRating';
 import ReviewSection from '../components/ReviewSection';
 import { CATEGORIES, CAT_COLORS } from '../data/categories';
 
-/* ─── Data ─── */
-const ACTIVITIES = [
-    {
-        id: 'surf-mondello',
-        name: 'Surf — Mondello Beach',
-        category: 'Surf',
-        description: 'Lezione di surf per principianti e intermedi con istruttori certificati. Tavola e muta incluse.',
-        price: 65,
-        duration: '2h',
-        emoji: '🏄',
-        image: 'https://images.unsplash.com/photo-1502680390469-be75c86b636f?w=800&q=75&auto=format',
-    },
-    {
-        id: 'kite-surf',
-        name: 'Kite Surf Experience',
-        category: 'Kite Surf',
-        description: 'Scopri il kite surf sul Mar Tirreno. Attrezzatura professionale e istruttore dedicato.',
-        price: 90,
-        duration: '3h',
-        emoji: '🪁',
-        image: 'https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&q=75&auto=format',
-    },
-    {
-        id: 'yoga-cliff',
-        name: 'Sunrise Yoga on the Cliff',
-        category: 'Yoga',
-        description: "Sessione di yoga all'alba sulla scogliera con vista mozzafiato sul Mediterraneo.",
-        price: 35,
-        duration: '1h 30min',
-        emoji: '🧘',
-        image: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=75&auto=format',
-    },
-    {
-        id: 'etna-trekking',
-        name: 'Trekking Etna',
-        category: 'Escursioni',
-        description: "Escursione guidata sul vulcano attivo piu alto d'Europa. Equipaggiamento e guida inclusi.",
-        price: 55,
-        duration: '6h',
-        emoji: '🌋',
-        image: 'https://images.unsplash.com/photo-1516912481808-3406841bd33c?w=800&q=75&auto=format',
-    },
-    {
-        id: 'snorkeling-zingaro',
-        name: 'Snorkeling — Riserva Zingaro',
-        category: 'Snorkeling',
-        description: 'Immersioni guidate nella riserva naturale dello Zingaro. Maschera, pinne e boccaglio inclusi.',
-        price: 45,
-        duration: '3h',
-        emoji: '🤿',
-        image: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800&q=75&auto=format',
-    },
-    {
-        id: 'street-food-palermo',
-        name: 'Street Food Tour — Palermo',
-        category: 'Food & Wine',
-        description: 'Tour gastronomico nei mercati storici di Palermo: Ballarò, Vucciria e Capo. Guida e degustazioni incluse.',
-        price: 40,
-        duration: '2h 30min',
-        emoji: '🍋',
-        image: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800&q=75&auto=format',
-    },
-    {
-        id: 'wine-etna',
-        name: 'Degustazione Vini Etna DOC',
-        category: 'Food & Wine',
-        description: "Visita a un antico palmento e degustazione di 5 etichette DOC dell'Etna con abbinamento tipico.",
-        price: 50,
-        duration: '2h',
-        emoji: '🍷',
-        image: 'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=800&q=75&auto=format',
-    },
-    {
-        id: 'kayak-isola-bella',
-        name: 'Sea Kayak — Isola Bella',
-        category: 'Escursioni',
-        description: "Giro in kayak attorno all'Isola Bella di Taormina. Grotte marine, acque cristalline e panorami unici.",
-        price: 55,
-        duration: '4h',
-        emoji: '🛶',
-        image: 'https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?w=800&q=75&auto=format',
-    },
-    {
-        id: 'yoga-tramonto',
-        name: 'Yoga al Tramonto',
-        category: 'Yoga',
-        description: 'Sessione di Hatha yoga al tramonto sulla terrazza con vista sulle Eolie.',
-        price: 30,
-        duration: '1h 30min',
-        emoji: '🌅',
-        image: 'https://images.unsplash.com/photo-1599901860904-17e6ed7083a0?w=800&q=75&auto=format',
-    },
-    {
-        id: 'windsurf-avanzato',
-        name: 'Wind Surf Avanzato',
-        category: 'Surf',
-        description: 'Sessione avanzata di windsurf per chi ha già esperienza. Vento garantito e istruttore a bordo.',
-        price: 80,
-        duration: '3h',
-        emoji: '🌊',
-        image: 'https://images.unsplash.com/photo-1489107879168-8e3f4c4a4c2a?w=800&q=75&auto=format',
-    },
-];
-
+const CAT_EMOJI = {
+    'Surf': '🏄', 'Kite Surf': '🪁', 'Yoga': '🧘',
+    'Escursioni': '🌋', 'Snorkeling': '🤿', 'Food & Wine': '🍋', 'Altro': '✨',
+};
 
 /* ─── Badge ─── */
 const CategoryBadge = memo(function CategoryBadge({ cat }) {
@@ -152,10 +52,9 @@ const ActivityCard = memo(function ActivityCard({ activity, onBook }) {
 
     return (
         <div className="card-hover" style={{ background: 'var(--surface)', overflow: 'hidden' }}>
-            {/* Image */}
             <div style={{ position: 'relative', height: '180px', overflow: 'hidden' }}>
                 <img
-                    src={activity.image + (activity.image.includes('?') ? '&' : '?') + 'w=800&q=75&auto=format'}
+                    src={activity.image}
                     alt={activity.name}
                     style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.4s ease' }}
                     onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.05)'}
@@ -171,7 +70,6 @@ const ActivityCard = memo(function ActivityCard({ activity, onBook }) {
                 </div>
             </div>
 
-            {/* Body */}
             <div style={{ padding: '18px 20px 20px' }}>
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginBottom: 8 }}>
                     <span style={{ fontSize: '1.4rem', lineHeight: 1, marginTop: 2 }}>{activity.emoji}</span>
@@ -220,7 +118,7 @@ const BookingModal = memo(function BookingModal({ activity, onClose, onConfirm }
     const [error, setError] = useState(null);
     const [done, setDone] = useState(false);
 
-    const slots = activity.slots || ['09:00', '11:00', '14:00', '16:00'];
+    const slots = activity.slots?.length ? activity.slots : ['09:00', '11:00', '14:00', '16:00'];
     const canConfirm = date && (slots.length === 0 || timeSlot);
 
     async function handleConfirm() {
@@ -259,7 +157,6 @@ const BookingModal = memo(function BookingModal({ activity, onClose, onConfirm }
                 }}
                 onClick={e => e.stopPropagation()}
             >
-                {/* Close */}
                 <button
                     onClick={onClose}
                     style={{
@@ -271,7 +168,6 @@ const BookingModal = memo(function BookingModal({ activity, onClose, onConfirm }
 
                 {!done ? (
                     <>
-                        {/* Header */}
                         <div style={{ marginBottom: 24 }}>
                             <div style={{ fontSize: '1.6rem', marginBottom: 8 }}>{activity.emoji}</div>
                             <div style={{ fontSize: '1.05rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: 4 }}>
@@ -290,7 +186,6 @@ const BookingModal = memo(function BookingModal({ activity, onClose, onConfirm }
                             </div>
                         </div>
 
-                        {/* Date picker */}
                         <div style={{ marginBottom: 20 }}>
                             <label style={{
                                 display: 'block', fontSize: '11px', fontFamily: 'monospace',
@@ -309,7 +204,6 @@ const BookingModal = memo(function BookingModal({ activity, onClose, onConfirm }
                             />
                         </div>
 
-                        {/* Time slot picker */}
                         <div style={{ marginBottom: 24 }}>
                             <label style={{
                                 display: 'block', fontSize: '11px', fontFamily: 'monospace',
@@ -340,7 +234,6 @@ const BookingModal = memo(function BookingModal({ activity, onClose, onConfirm }
                             </div>
                         </div>
 
-                        {/* Price summary */}
                         <div style={{
                             background: 'var(--surface-2)', borderRadius: '8px',
                             padding: '14px 16px', marginBottom: 24,
@@ -373,7 +266,6 @@ const BookingModal = memo(function BookingModal({ activity, onClose, onConfirm }
                         </p>
                     </>
                 ) : (
-                    /* Success state */
                     <div style={{ textAlign: 'center', padding: '12px 0' }}>
                         <div style={{ fontSize: '2.5rem', marginBottom: 16 }}>✅</div>
                         <div style={{ fontSize: '1.1rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: 8 }}>
@@ -406,39 +298,32 @@ export default function ActivitiesPage() {
     const navigate = useNavigate();
     const [activeCategory, setActiveCategory] = useState('Tutto');
     const [bookingActivity, setBookingActivity] = useState(null);
-
-    const [dbActivities, setDbActivities] = useState([]);
+    const [activities, setActivities] = useState([]);
+    const [loadingActivities, setLoadingActivities] = useState(true);
 
     useEffect(() => {
-        async function fetchDbActivities() {
-            const { data, error } = await supabase
-                .from('activities')
-                .select('*')
-                .eq('published', true);
-
-            if (!error && data) {
-                // Map DB fields to SEED structure if necessary
-                const mapped = data.map(a => ({
-                    ...a,
-                    image: a.image_url || a.image
-                }));
-                setDbActivities(mapped);
-            }
-        }
-        fetchDbActivities();
+        supabase
+            .from('activities')
+            .select('id, title, category, price, description, image_url, duration, location, slots, emoji, published')
+            .eq('published', true)
+            .order('created_at', { ascending: false })
+            .then(({ data, error }) => {
+                if (!error && data) {
+                    setActivities(data.map(a => ({
+                        ...a,
+                        name: a.title,
+                        image: a.image_url,
+                        emoji: a.emoji || CAT_EMOJI[a.category] || '✨',
+                        slots: Array.isArray(a.slots) ? a.slots : [],
+                    })));
+                }
+                setLoadingActivities(false);
+            });
     }, []);
 
-    const allActivities = useMemo(() => {
-        // Create a map to avoid duplicates (prioritizing DB data)
-        const map = new Map();
-        ACTIVITIES.forEach(a => map.set(a.id, a));
-        dbActivities.forEach(a => map.set(a.id, a));
-        return Array.from(map.values());
-    }, [dbActivities]);
-
     const filtered = useMemo(() => activeCategory === 'Tutto'
-        ? allActivities
-        : allActivities.filter(a => a.category === activeCategory), [activeCategory, allActivities]);
+        ? activities
+        : activities.filter(a => a.category === activeCategory), [activeCategory, activities]);
 
     function handleBook(activity) {
         if (!user) {
@@ -448,20 +333,21 @@ export default function ActivitiesPage() {
         setBookingActivity(activity);
     }
 
-    async function handleConfirm({ activity, date }) {
+    async function handleConfirm({ activity, date, timeSlot }) {
         const result = await addBooking({
             activityId: activity.id,
             activityName: activity.name,
             category: activity.category,
             emoji: activity.emoji,
             checkIn: date,
+            timeSlot,
             totalPrice: activity.price,
         });
         if (result?.error) {
-            alert(result.error);
+            return result;
         }
-        // If redirecting to Stripe, the page navigates away
         setBookingActivity(null);
+        return result;
     }
 
     return (
@@ -476,7 +362,6 @@ export default function ActivitiesPage() {
                 position: 'relative',
                 overflow: 'hidden',
             }}>
-                {/* Ambient circle */}
                 <div style={{
                     position: 'absolute', top: '-80px', left: '50%', transform: 'translateX(-50%)',
                     width: '480px', height: '480px', borderRadius: '50%',
@@ -541,19 +426,32 @@ export default function ActivitiesPage() {
                 maxWidth: '1200px',
                 margin: '0 auto',
                 padding: '36px 24px 0',
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
-                gap: '24px',
             }}>
-                {filtered.map(activity => (
-                    <Link key={activity.id} to={`/activity/${activity.id}`} style={{ textDecoration: 'none' }}>
-                        <ActivityCard activity={activity} onBook={handleBook} />
-                    </Link>
-                ))}
+                {loadingActivities ? (
+                    <div style={{ textAlign: 'center', padding: '80px 0', color: 'var(--text-muted)', fontFamily: 'monospace', fontSize: '0.85rem' }}>
+                        Caricamento attività...
+                    </div>
+                ) : filtered.length === 0 ? (
+                    <div style={{ textAlign: 'center', padding: '80px 0', color: 'var(--text-muted)', fontFamily: 'monospace', fontSize: '0.85rem' }}>
+                        Nessuna attività disponibile in questa categoria.
+                    </div>
+                ) : (
+                    <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+                        gap: '24px',
+                    }}>
+                        {filtered.map(activity => (
+                            <Link key={activity.id} to={`/activity/${activity.id}`} style={{ textDecoration: 'none' }}>
+                                <ActivityCard activity={activity} onBook={handleBook} />
+                            </Link>
+                        ))}
+                    </div>
+                )}
             </div>
 
             {/* ── Not logged in nudge ── */}
-            {!user && (
+            {!user && !loadingActivities && (
                 <div style={{
                     textAlign: 'center', marginTop: '48px',
                     padding: '24px',

@@ -71,6 +71,35 @@ export function BookingProvider({ children }) {
         setCart([]);
     }
 
+    // Single-item direct checkout (used by ActivitiesPage)
+    async function addBooking(booking) {
+        if (!user) return { error: 'Devi essere loggato per procedere.' };
+        const price = Number(booking.totalPrice || booking.price);
+        const item = {
+            activityId: booking.activityId || null,
+            activityName: booking.activityName || null,
+            checkIn: booking.checkIn,
+            totalPrice: price,
+            category: booking.category || null,
+            emoji: booking.emoji || null,
+            timeSlot: booking.timeSlot || null,
+        };
+        const platformFee = price * 0.10;
+        const membershipFee = user?.is_premium ? 0 : 0; // skip membership for single activities
+        setPaymentLoading(true);
+        try {
+            const { sessionUrl } = await createCheckoutSession({
+                items: [item],
+                totals: { itemsTotal: price, platformFee, membershipFee, total: price + platformFee + membershipFee }
+            });
+            window.location.href = sessionUrl;
+            return { redirecting: true };
+        } catch (err) {
+            setPaymentLoading(false);
+            return { error: err.message };
+        }
+    }
+
     async function processCheckout() {
         if (!user) return { error: 'Devi essere loggato per procedere.' };
         if (cart.length === 0) return { error: 'Il carrello è vuoto.' };
@@ -132,6 +161,7 @@ export function BookingProvider({ children }) {
         cartTotals,
         isCartOpen,
         setIsCartOpen,
+        addBooking,
         processCheckout,
         cancelBooking,
         loading,
